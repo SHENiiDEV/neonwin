@@ -42,6 +42,21 @@ export default function GamePlayer({ game, launchUrl, isMock = false, relatedGam
             setIsLoading(false);
         }, 1200);
 
+        // Sync balance periodically during active gameplay
+        const pollInterval = setInterval(() => {
+            if (document.visibilityState === 'visible' && user) {
+                import('axios').then(({ default: axios }) => {
+                    axios.get('/api/user/balance')
+                        .then(res => {
+                            if (res.data && typeof res.data.balance === 'number') {
+                                setCurrentBalance(res.data.balance);
+                            }
+                        })
+                        .catch(() => {});
+                });
+            }
+        }, 3000);
+
         // Listen for real-time postMessage events from the game iframe
         const handleMessage = (event) => {
             if (event.data && event.data.type === 'NEONWIN_BALANCE_UPDATE') {
@@ -59,11 +74,12 @@ export default function GamePlayer({ game, launchUrl, isMock = false, relatedGam
 
         return () => {
             clearTimeout(timer);
+            clearInterval(pollInterval);
             window.removeEventListener('message', handleMessage);
             document.removeEventListener('fullscreenchange', handleFullscreenChange);
             document.removeEventListener('webkitfullscreenchange', handleFullscreenChange);
         };
-    }, []);
+    }, [user]);
 
     const toggleFavorite = () => {
         setFavorite(!favorite);
@@ -141,12 +157,18 @@ export default function GamePlayer({ game, launchUrl, isMock = false, relatedGam
                         {/* Top Action Toolbar */}
                         <div className="flex items-center gap-2.5">
                             {/* Live Balance */}
-                            <div className="px-3.5 py-1.5 rounded-xl bg-[#171926] border border-[#2b2a3d] flex items-center gap-2 shadow-inner">
-                                <Coins className="w-3.5 h-3.5 text-yellow-400 animate-spin-slow" />
-                                <span className="text-xs font-mono font-bold text-white tracking-tight">
-                                    {Math.floor(Number(currentBalance)).toLocaleString()} <span className="text-[10px] text-yellow-400">Coins</span>
-                                </span>
+                            <div className="px-3.5 py-1.5 rounded-xl bg-gradient-to-r from-[#1b172a] to-[#131524] border border-yellow-500/30 flex items-center gap-2 shadow-[0_0_15px_rgba(234,179,8,0.15)]">
+                                <div className="w-5 h-5 rounded-lg bg-yellow-500/20 border border-yellow-400/40 flex items-center justify-center">
+                                    <Coins className="w-3.5 h-3.5 text-yellow-400 animate-pulse" />
+                                </div>
+                                <div className="flex flex-col text-left">
+                                    <span className="text-[9px] uppercase font-bold text-yellow-400/80 leading-none">Coins Balance</span>
+                                    <span className="text-sm font-mono font-black text-white tracking-tight leading-tight">
+                                        {Math.floor(Number(currentBalance)).toLocaleString()}
+                                    </span>
+                                </div>
                             </div>
+
 
                             {/* Favorite Button */}
                             <button

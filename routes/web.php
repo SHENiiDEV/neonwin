@@ -76,6 +76,14 @@ Route::post('/api/games/favorite', [GamePreferenceController::class, 'toggleFavo
 Route::get('/api/games/favorites', [GamePreferenceController::class, 'getFavorites'])->name('games.favorites.list');
 Route::post('/api/games/recent', [GamePreferenceController::class, 'logRecent'])->name('games.recent.log');
 Route::post('/api/user/sound-toggle', [GamePreferenceController::class, 'toggleSound'])->name('user.sound.toggle');
+Route::get('/api/user/balance', function () {
+    $user = auth()->user();
+
+    return response()->json([
+        'balance' => $user ? (float) $user->game_balance : 0,
+        'vault_balance' => $user ? (float) $user->vault_balance : 0,
+    ]);
+})->middleware('auth')->name('user.balance');
 
 // Root gold_api Webhook endpoint
 Route::post('/gold_api', [GgrGoldApiController::class, 'handleCallback']);
