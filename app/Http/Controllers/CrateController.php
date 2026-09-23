@@ -46,49 +46,51 @@ class CrateController extends Controller
         }
 
         // Weighted random prizes based on crate tier
-        $rewardCoins = 0.00;
+        $rewardSc = 0.00;
         $rewardXp = 0;
 
         switch ($crate->tier) {
             case 'mythic':
-                $rewardCoins = (float) fake()->randomElement([5000000, 7500000, 10000000, 25000000, 50000000]);
-                $rewardXp = fake()->numberBetween(1000, 5000);
+                $rewardSc = (float) fake()->randomElement([5.00, 7.50, 10.00, 15.00]);
+                $rewardXp = fake()->numberBetween(100, 500);
                 break;
             case 'platinum':
-                $rewardCoins = (float) fake()->randomElement([2000000, 3500000, 5000000, 10000000]);
-                $rewardXp = fake()->numberBetween(500, 2000);
+                $rewardSc = (float) fake()->randomElement([2.50, 4.00, 6.00, 8.00]);
+                $rewardXp = fake()->numberBetween(50, 200);
                 break;
             case 'gold':
-                $rewardCoins = (float) fake()->randomElement([1000000, 1500000, 2500000, 5000000]);
-                $rewardXp = fake()->numberBetween(250, 1000);
+                $rewardSc = (float) fake()->randomElement([1.00, 2.00, 3.50, 5.00]);
+                $rewardXp = fake()->numberBetween(30, 100);
                 break;
             case 'silver':
-                $rewardCoins = (float) fake()->randomElement([500000, 800000, 1200000, 2000000]);
-                $rewardXp = fake()->numberBetween(100, 500);
+                $rewardSc = (float) fake()->randomElement([0.50, 1.00, 1.50, 2.50]);
+                $rewardXp = fake()->numberBetween(15, 50);
                 break;
             case 'bronze':
             default:
-                $rewardCoins = (float) fake()->randomElement([200000, 300000, 500000, 1000000]);
-                $rewardXp = fake()->numberBetween(50, 250);
+                $rewardSc = (float) fake()->randomElement([0.20, 0.40, 0.60, 1.00]);
+                $rewardXp = fake()->numberBetween(5, 20);
                 break;
         }
 
         $crate->update([
             'status' => 'opened',
-            'reward_sc' => $rewardCoins,
+            'reward_sc' => $rewardSc,
             'reward_xp' => $rewardXp,
             'opened_at' => now(),
         ]);
 
-        $user->increment('game_balance', $rewardCoins);
-        $user->awardVipXp($rewardCoins / 100000);
+        $user->increment('game_balance', $rewardSc);
+        $user->awardVipXp($rewardXp);
+
+        $formattedSc = number_format($rewardSc, 2);
 
         return response()->json([
             'status' => 'success',
-            'reward_sc' => $rewardCoins,
+            'reward_sc' => $rewardSc,
             'reward_xp' => $rewardXp,
             'new_balance' => (float) $user->game_balance,
-            'message' => 'Unboxed '.number_format($rewardCoins).' Coins and '.$rewardXp.' VIP XP!',
+            'message' => "Unboxed {$formattedSc} SC and {$rewardXp} VIP XP!",
         ]);
     }
 }

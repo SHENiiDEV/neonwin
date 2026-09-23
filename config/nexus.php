@@ -11,4 +11,3 @@ return [
     'currency' => env('NEXUS_CURRENCY', env('DEFAULT_CURRENCY', 'COINS')),
     'denomination_rate' => (float) env('NEXUS_DENOMINATION_RATE', 1),
 ];
-

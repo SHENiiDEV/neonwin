@@ -13,30 +13,31 @@ const tierColors = {
 };
 
 const tierDetails = {
-    bronze: { label: 'Bronze', maxCoins: '1,000,000', range: '200K – 1M Coins', xp: 'Up to 250 XP', emoji: '🥉' },
-    silver: { label: 'Silver', maxCoins: '2,000,000', range: '500K – 2M Coins', xp: 'Up to 500 XP', emoji: '🥈' },
-    gold: { label: 'Gold', maxCoins: '5,000,000', range: '1M – 5M Coins', xp: 'Up to 1,000 XP', emoji: '🥇' },
-    platinum: { label: 'Platinum', maxCoins: '10,000,000', range: '2M – 10M Coins', xp: 'Up to 2,000 XP', emoji: '💠' },
-    mythic: { label: 'Mythic', maxCoins: '50,000,000', range: '5M – 50M Coins', xp: 'Up to 5,000 XP', emoji: '💎' },
+    bronze: { label: 'Bronze', maxCoins: '1.00 SC', range: '0.20 – 1.00 SC', xp: 'Up to 20 XP', emoji: '🥉' },
+    silver: { label: 'Silver', maxCoins: '2.50 SC', range: '0.50 – 2.50 SC', xp: 'Up to 50 XP', emoji: '🥈' },
+    gold: { label: 'Gold', maxCoins: '5.00 SC', range: '1.00 – 5.00 SC', xp: 'Up to 100 XP', emoji: '🥇' },
+    platinum: { label: 'Platinum', maxCoins: '8.00 SC', range: '2.50 – 8.00 SC', xp: 'Up to 200 XP', emoji: '💠' },
+    mythic: { label: 'Mythic', maxCoins: '15.00 SC', range: '5.00 – 15.00 SC', xp: 'Up to 500 XP', emoji: '💎' },
 };
 
 const possiblePrizesPool = [
-    { tier: 'bronze', coins: 200000, xp: 50, emoji: '🥉' },
-    { tier: 'bronze', coins: 300000, xp: 100, emoji: '🥉' },
-    { tier: 'bronze', coins: 500000, xp: 150, emoji: '🥉' },
-    { tier: 'silver', coins: 800000, xp: 200, emoji: '🥈' },
-    { tier: 'silver', coins: 1200000, xp: 350, emoji: '🥈' },
-    { tier: 'silver', coins: 2000000, xp: 500, emoji: '🥈' },
-    { tier: 'gold', coins: 1500000, xp: 300, emoji: '🥇' },
-    { tier: 'gold', coins: 2500000, xp: 600, emoji: '🥇' },
-    { tier: 'gold', coins: 5000000, xp: 1000, emoji: '🥇' },
-    { tier: 'platinum', coins: 3500000, xp: 800, emoji: '💠' },
-    { tier: 'platinum', coins: 5000000, xp: 1200, emoji: '💠' },
-    { tier: 'platinum', coins: 10000000, xp: 2000, emoji: '💠' },
-    { tier: 'mythic', coins: 7500000, xp: 1500, emoji: '💎' },
-    { tier: 'mythic', coins: 25000000, xp: 3000, emoji: '💎' },
-    { tier: 'mythic', coins: 50000000, xp: 5000, emoji: '💎' },
+    { tier: 'bronze', coins: 0.20, xp: 5, emoji: '🥉' },
+    { tier: 'bronze', coins: 0.40, xp: 10, emoji: '🥉' },
+    { tier: 'bronze', coins: 1.00, xp: 20, emoji: '🥉' },
+    { tier: 'silver', coins: 0.50, xp: 15, emoji: '🥈' },
+    { tier: 'silver', coins: 1.50, xp: 30, emoji: '🥈' },
+    { tier: 'silver', coins: 2.50, xp: 50, emoji: '🥈' },
+    { tier: 'gold', coins: 1.00, xp: 30, emoji: '🥇' },
+    { tier: 'gold', coins: 2.50, xp: 60, emoji: '🥇' },
+    { tier: 'gold', coins: 5.00, xp: 100, emoji: '🥇' },
+    { tier: 'platinum', coins: 2.50, xp: 80, emoji: '💠' },
+    { tier: 'platinum', coins: 5.00, xp: 120, emoji: '💠' },
+    { tier: 'platinum', coins: 8.00, xp: 200, emoji: '💠' },
+    { tier: 'mythic', coins: 5.00, xp: 150, emoji: '💎' },
+    { tier: 'mythic', coins: 10.00, xp: 300, emoji: '💎' },
+    { tier: 'mythic', coins: 15.00, xp: 500, emoji: '💎' },
 ];
+
 
 export default function CratesModal({ isOpen, onClose }) {
     const { auth } = usePage().props;
@@ -95,6 +96,7 @@ export default function CratesModal({ isOpen, onClose }) {
                 items.push({
                     id: `win-${i}`,
                     tier: crateTier,
+                    coins: Number(winningPrize.reward_sc),
                     sc: winningPrize.reward_sc,
                     xp: winningPrize.reward_xp,
                     emoji: tierDetails[crateTier]?.emoji || '🎁',
@@ -280,7 +282,7 @@ export default function CratesModal({ isOpen, onClose }) {
                                                 {item.emoji}
                                             </div>
                                             <div className="text-center font-heading font-black leading-tight">
-                                                <div className="text-sm text-yellow-300">+{item.coins >= 1000000 ? `${item.coins / 1000000}M` : `${item.coins / 1000}K`} Coins</div>
+                                                <div className="text-sm text-yellow-300">+{Number(item.coins || item.sc || 0).toFixed(2)} SC</div>
                                                 <div className="text-[9px] text-purple-300 font-mono">+{item.xp} XP</div>
                                             </div>
                                         </div>
@@ -309,7 +311,7 @@ export default function CratesModal({ isOpen, onClose }) {
                                 {revealedPrize.tier} Crate Decrypted!
                             </span>
                             <h3 className="font-heading font-black text-4xl sm:text-5xl text-white mt-2 drop-shadow-[0_0_20px_rgba(255,255,255,0.4)]">
-                                +{Number(revealedPrize.sc || 0).toLocaleString('en-US')} <span className="text-yellow-300">Coins</span>
+                                +{Number(revealedPrize.sc || 0).toFixed(2)} <span className="text-yellow-300">SC</span>
                             </h3>
                             <div className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full bg-purple-900/70 border border-purple-500/50 text-sm font-bold text-purple-200 shadow-md">
                                 <Sparkles size={14} className="text-yellow-400" />
@@ -342,7 +344,7 @@ export default function CratesModal({ isOpen, onClose }) {
                             <div>
                                 <h3 className="text-xs font-bold uppercase tracking-wider text-gray-400 mb-3 flex items-center justify-between">
                                     <span>Available Crates to Open ({pendingCrates.length})</span>
-                                    <span className="text-[11px] text-yellow-400 font-mono">Instant Coins & VIP XP</span>
+                                    <span className="text-[11px] text-yellow-400 font-mono">Instant SC & VIP XP</span>
                                 </h3>
                                 
                                 <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4">
@@ -370,7 +372,7 @@ export default function CratesModal({ isOpen, onClose }) {
                                                     </strong>
                                                     <div className="flex flex-col items-center mt-1">
                                                         <span className="text-xs font-bold text-yellow-300">
-                                                            Win up to <strong className="text-white font-black">{info.maxCoins} Coins</strong>
+                                                            Win up to <strong className="text-white font-black">{info.maxCoins}</strong>
                                                         </span>
                                                         <span className="text-[10px] text-gray-400 font-mono mt-0.5">
                                                             Drops {info.range}
@@ -413,7 +415,7 @@ export default function CratesModal({ isOpen, onClose }) {
                                                 <span className="font-bold text-gray-300">{c.name}</span>
                                             </div>
                                             <div className="flex items-center gap-2 font-mono">
-                                                <span className="text-yellow-300 font-bold">+{Number(c.reward_sc || 0).toLocaleString('en-US')} Coins</span>
+                                                <span className="text-yellow-300 font-bold">+{Number(c.reward_sc || 0).toFixed(2)} SC</span>
                                                 <span className="text-purple-400 text-[10px]">+{c.reward_xp} XP</span>
                                             </div>
                                         </div>

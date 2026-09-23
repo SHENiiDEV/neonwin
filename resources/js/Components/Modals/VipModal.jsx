@@ -20,11 +20,11 @@ import {
 } from 'lucide-react';
 
 const vipTiers = [
-    { level: 1, name: 'Bronze Recruit', minXp: 0, maxXp: 5000, cashback: '2%', rakeback: '5%', bonus: '2,500,000 Coins', icon: '🥉', badgeColor: '#d97706' },
-    { level: 2, name: 'Silver Shadow', minXp: 5000, maxXp: 20000, cashback: '5%', rakeback: '8%', bonus: '10,000,000 Coins', icon: '🥈', badgeColor: '#94a3b8' },
-    { level: 3, name: 'Gold Ronin', minXp: 20000, maxXp: 50000, cashback: '8%', rakeback: '12%', bonus: '30,000,000 Coins', icon: '🥇', badgeColor: '#f59e0b' },
-    { level: 4, name: 'Platinum Cyber', minXp: 50000, maxXp: 100000, cashback: '12%', rakeback: '15%', bonus: '100,000,000 Coins', icon: '💎', badgeColor: '#06b6d4' },
-    { level: 5, name: 'Neon Overlord', minXp: 100000, maxXp: 500000, cashback: '18%', rakeback: '20%', bonus: '500,000,000 Coins', icon: '👑', badgeColor: '#ec4899' },
+    { level: 1, name: 'Bronze Recruit', minXp: 0, maxXp: 5000, cashback: '2%', rakeback: '5%', bonus: '25 SC', icon: '🥉', badgeColor: '#d97706' },
+    { level: 2, name: 'Silver Shadow', minXp: 5000, maxXp: 20000, cashback: '5%', rakeback: '8%', bonus: '100 SC', icon: '🥈', badgeColor: '#94a3b8' },
+    { level: 3, name: 'Gold Ronin', minXp: 20000, maxXp: 50000, cashback: '8%', rakeback: '12%', bonus: '300 SC', icon: '🥇', badgeColor: '#f59e0b' },
+    { level: 4, name: 'Platinum Cyber', minXp: 50000, maxXp: 100000, cashback: '12%', rakeback: '15%', bonus: '1,000 SC', icon: '💎', badgeColor: '#06b6d4' },
+    { level: 5, name: 'Neon Overlord', minXp: 100000, maxXp: 500000, cashback: '18%', rakeback: '20%', bonus: '5,000 SC', icon: '👑', badgeColor: '#ec4899' },
 ];
 
 export default function VipModal({ isOpen, onClose }) {

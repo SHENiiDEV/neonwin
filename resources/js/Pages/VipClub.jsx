@@ -20,11 +20,11 @@ import {
 } from 'lucide-react';
 
 const defaultVipTiers = [
-    { level: 1, name: 'Bronze Recruit', min_xp: 0, max_xp: 5000, cashback: '2%', rakeback: '5%', level_bonus: '2,500,000 Coins', icon: '🥉' },
-    { level: 2, name: 'Silver Shadow', min_xp: 5000, max_xp: 20000, cashback: '5%', rakeback: '8%', level_bonus: '10,000,000 Coins', icon: '🥈' },
-    { level: 3, name: 'Gold Ronin', min_xp: 20000, max_xp: 50000, cashback: '8%', rakeback: '12%', level_bonus: '30,000,000 Coins', icon: '🥇' },
-    { level: 4, name: 'Platinum Cyber', min_xp: 50000, max_xp: 100000, cashback: '12%', rakeback: '15%', level_bonus: '100,000,000 Coins', icon: '💎' },
-    { level: 5, name: 'Neon Overlord', min_xp: 100000, max_xp: 500000, cashback: '18%', rakeback: '20%', level_bonus: '500,000,000 Coins', icon: '👑' },
+    { level: 1, name: 'Bronze Recruit', min_xp: 0, max_xp: 5000, cashback: '2%', rakeback: '5%', level_bonus: '25 SC', icon: '🥉' },
+    { level: 2, name: 'Silver Shadow', min_xp: 5000, max_xp: 20000, cashback: '5%', rakeback: '8%', level_bonus: '100 SC', icon: '🥈' },
+    { level: 3, name: 'Gold Ronin', min_xp: 20000, max_xp: 50000, cashback: '8%', rakeback: '12%', level_bonus: '300 SC', icon: '🥇' },
+    { level: 4, name: 'Platinum Cyber', min_xp: 50000, max_xp: 100000, cashback: '12%', rakeback: '15%', level_bonus: '1,000 SC', icon: '💎' },
+    { level: 5, name: 'Neon Overlord', min_xp: 100000, max_xp: 500000, cashback: '18%', rakeback: '20%', level_bonus: '5,000 SC', icon: '👑' },
 ];
 
 export default function VipClub({ vipTiers = defaultVipTiers }) {
@@ -34,11 +34,11 @@ export default function VipClub({ vipTiers = defaultVipTiers }) {
     const faqs = [
         {
             q: 'How do I earn VIP XP points?',
-            a: 'For every 10,000 Coins wagered on slots, live casino tables, or crash games, you automatically earn 1 VIP XP point in real time. XP never expires.'
+            a: 'For every 1 SC wagered on slots, live casino tables, or crash games, you automatically earn 1 VIP XP point in real time. XP never expires.'
         },
         {
             q: 'Are there any wagering requirements on VIP rewards?',
-            a: 'None! All cashback, weekly rakeback, and level-up bonuses are credited as pure Coins with 0x wager requirement.'
+            a: 'None! All cashback, weekly rakeback, and level-up bonuses are credited as pure SC with 0x wager requirement.'
         },
         {
             q: 'When is cashback and rakeback credited?',

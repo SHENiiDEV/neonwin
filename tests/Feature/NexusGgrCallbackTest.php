@@ -72,7 +72,6 @@ class NexusGgrCallbackTest extends TestCase
             'user_balance' => 11.50,
         ]);
 
-
         // 2. Test Deduplication on txn_id_v2
         $duplicateResponse = $this->postJson('/gold_api', [
             'method' => 'transaction',

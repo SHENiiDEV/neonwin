@@ -80,4 +80,3 @@ class DepositTest extends TestCase
         $this->assertEquals(2.00, $user->game_balance);
     }
 }
-

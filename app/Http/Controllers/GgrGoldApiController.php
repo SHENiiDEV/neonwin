@@ -107,7 +107,6 @@ class GgrGoldApiController extends Controller
         ]);
     }
 
-
     /**
      * B. Process Bet and Win transactions (method: transaction)
      * Matches NexusGGR Social Casino specification with Denomination Gateway
@@ -290,4 +289,3 @@ class GgrGoldApiController extends Controller
         return response()->json(['status' => 1, 'msg' => 'REFUND_RECORDED']);
     }
 }
-

@@ -73,7 +73,6 @@ class VaultController extends Controller
         ]);
     }
 
-
     public function setPin(Request $request): JsonResponse
     {
         $validated = $request->validate([
