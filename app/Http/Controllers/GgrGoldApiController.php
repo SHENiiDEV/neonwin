@@ -37,7 +37,11 @@ class GgrGoldApiController extends Controller
             ], 403);
         }
 
-        Log::info("Nexus Callback: method=[{$method}]", ['payload' => $payload]);
+        Log::info("🎯 [Nexus Callback IN] method=[{$method}]", [
+            'method' => $method,
+            'ip' => $request->ip(),
+            'payload' => $payload,
+        ]);
 
         switch ($method) {
             case 'user_balance':
@@ -54,6 +58,8 @@ class GgrGoldApiController extends Controller
                 return $this->handleRefund($payload);
 
             default:
+                Log::warning("❓ [Nexus Callback] Unknown method: {$method}", ['payload' => $payload]);
+
                 return response()->json([
                     'status' => 0,
                     'msg' => "UNKNOWN_METHOD_{$method}",
@@ -70,6 +76,8 @@ class GgrGoldApiController extends Controller
         $rate = (float) config('nexus.denomination_rate', 100000);
 
         if (empty($userCode)) {
+            Log::warning('⚠️ [Nexus user_balance] Missing user_code', ['payload' => $payload]);
+
             return response()->json([
                 'status' => 0,
                 'msg' => 'MISSING_USER_CODE',
@@ -81,6 +89,8 @@ class GgrGoldApiController extends Controller
             ->first();
 
         if (! $user) {
+            Log::warning("⚠️ [Nexus user_balance] User not found: [{$userCode}]");
+
             return response()->json([
                 'status' => 0,
                 'msg' => 'USER_NOT_FOUND',
@@ -88,6 +98,8 @@ class GgrGoldApiController extends Controller
         }
 
         $providerBalance = floor((((float) $user->game_balance) / $rate) * 100) / 100;
+
+        Log::info("💰 [Nexus user_balance OUT] User=[{$userCode}] SiteCoins=[{$user->game_balance}] Rate=[{$rate}] => SentToSlot=[{$providerBalance} SC]");
 
         return response()->json([
             'status' => 1,
@@ -130,7 +142,11 @@ class GgrGoldApiController extends Controller
         $coinsToDebit = (float) round($betMoney * $rate);
         $coinsToCredit = (float) round($winMoney * $rate);
 
+        Log::info("🎰 [Nexus transaction IN] User=[{$userCode}] Provider=[{$providerCode}] Game=[{$gameCode}] Type=[{$txnType}] Bet=[{$betMoney} SC -> {$coinsToDebit} Coins] Win=[{$winMoney} SC -> {$coinsToCredit} Coins] TxnId=[{$txnIdV2}]");
+
         if (empty($userCode)) {
+            Log::warning('⚠️ [Nexus transaction] Missing user_code');
+
             return response()->json([
                 'status' => 0,
                 'msg' => 'MISSING_USER_CODE',
@@ -138,6 +154,8 @@ class GgrGoldApiController extends Controller
         }
 
         if (empty($txnIdV2)) {
+            Log::warning('⚠️ [Nexus transaction] Missing txn_id_v2');
+
             return response()->json([
                 'status' => 0,
                 'msg' => 'MISSING_TRANSACTION_ID',
@@ -149,6 +167,8 @@ class GgrGoldApiController extends Controller
         if ($existingTx) {
             $user = User::find($existingTx->user_id);
             $currentProviderBalance = $user ? floor((((float) $user->game_balance) / $rate) * 100) / 100 : 0.0;
+
+            Log::info("🔁 [Nexus transaction DUPLICATE] TxnId=[{$txnIdV2}] already processed. Returned Balance=[{$currentProviderBalance}]");
 
             return response()->json([
                 'status' => 1,
@@ -165,6 +185,8 @@ class GgrGoldApiController extends Controller
                 ->first();
 
             if (! $user) {
+                Log::warning("⚠️ [Nexus transaction] User not found: [{$userCode}]");
+
                 return response()->json([
                     'status' => 0,
                     'msg' => 'USER_NOT_FOUND',
@@ -175,6 +197,8 @@ class GgrGoldApiController extends Controller
 
             // Insufficient funds check
             if ($coinsToDebit > 0 && $currentBalance < $coinsToDebit) {
+                Log::warning("⛔ [Nexus transaction INSUFFICIENT FUNDS] User=[{$userCode}] Balance=[{$currentBalance} Coins] < Bet=[{$coinsToDebit} Coins]");
+
                 return response()->json([
                     'status' => 0,
                     'msg' => 'INSUFFICIENT_USER_FUNDS',
@@ -224,6 +248,8 @@ class GgrGoldApiController extends Controller
             }
 
             $providerBalanceAfter = floor(($balanceAfter / $rate) * 100) / 100;
+
+            Log::info("✅ [Nexus transaction SUCCESS] User=[{$userCode}] Balance: {$balanceBefore} -> {$balanceAfter} Coins (ReturnedToSlot: {$providerBalanceAfter} SC)");
 
             return response()->json([
                 'status' => 1,
