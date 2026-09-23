@@ -45,8 +45,16 @@ class NexusSyncCommand extends Command
 
         $this->info('Starting NexusGGR synchronization'.($provider ? " for provider: [{$provider}]" : ' for all providers').'...');
 
+        $logger = function (string $msg, string $type = 'info') {
+            match ($type) {
+                'warn' => $this->warn($msg),
+                'error' => $this->error($msg),
+                default => $this->line($msg),
+            };
+        };
+
         $startTime = microtime(true);
-        $result = $service->syncGames($provider);
+        $result = $service->syncGames($provider, $logger);
         $duration = round(microtime(true) - $startTime, 2);
 
         $this->table(

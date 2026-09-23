@@ -291,9 +291,25 @@ class NexusGgrService
     /**
      * 7. Full Synchronization Routine
      */
-    public function syncGames(?string $targetProvider = null): array
+    public function syncGames(?string $targetProvider = null, ?callable $logger = null): array
     {
+        $log = $logger ?? function (string $msg, string $type = 'info') {
+            Log::info("[NexusSync] {$msg}");
+        };
+
+        $log("Fetching provider list from Nexus API: {$this->baseUrl} (Agent: {$this->agentCode})...");
+        $providerResponse = $this->post(['method' => 'provider_list']);
+
+        if (! $providerResponse) {
+            $log("Failed to connect to NexusGGR API at {$this->baseUrl}. Check network or credentials.", 'error');
+        } elseif (isset($providerResponse['status']) && (int) $providerResponse['status'] !== 1) {
+            $msg = $providerResponse['msg'] ?? $providerResponse['message'] ?? 'Unknown API error';
+            $log("NexusGGR API returned error for provider_list: [{$msg}]. Check if server IP is whitelisted in NexusGGR dashboard.", 'warn');
+        }
+
         $providers = $this->fetchProviders();
+        $log('Providers available for sync: '.count($providers));
+
         $stats = [
             'providers_synced' => 0,
             'games_created' => 0,
@@ -321,7 +337,17 @@ class NexusGgrService
             );
             $stats['providers_synced']++;
 
+            $log("Fetching games for provider [{$code}] ({$name})...");
             $games = $this->fetchGameList($code);
+
+            if (empty($games)) {
+                $log("  -> 0 games returned for [{$code}]. Check if provider is enabled for agent in Nexus dashboard.", 'warn');
+
+                continue;
+            }
+
+            $log('  -> Received '.count($games)." games for [{$code}]. Saving...");
+
             foreach ($games as $gData) {
                 try {
                     $gameCode = $gData['game_code'] ?? $gData['code'] ?? '';
@@ -370,7 +396,7 @@ class NexusGgrService
                     }
                 } catch (\Exception $e) {
                     $stats['errors']++;
-                    Log::error("Failed to sync game {$code}/{$gameCode}: ".$e->getMessage());
+                    $log("  -> Error saving game {$code}/{$gameCode}: ".$e->getMessage(), 'error');
                 }
             }
         }
