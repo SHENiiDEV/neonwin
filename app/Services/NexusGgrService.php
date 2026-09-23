@@ -247,32 +247,59 @@ class NexusGgrService
     {
         $payload = [
             'method' => 'game_launch',
-            'user_code' => $user->user_code,
-            'provider_code' => strtoupper($providerCode),
-            'game_code' => $gameCode,
-            'lang' => $lang,
+            'user_code' => (string) ($user->user_code ?: 'NW'.$user->id),
+            'provider_code' => strtoupper(trim($providerCode)),
+            'game_code' => trim($gameCode),
+            'lang' => $lang ?: 'en',
             'lobby_url' => $this->lobbyUrl,
         ];
 
+        // For live games where game_code can be empty, remove empty game_code field
+        if (empty($payload['game_code'])) {
+            unset($payload['game_code']);
+        }
+
         if ($rtp !== null) {
-            $payload['rtp'] = $rtp;
+            $payload['rtp'] = (int) $rtp;
         }
 
         if (! $this->mockMode) {
             $response = $this->post($payload);
-            if ($response && isset($response['launch_url']) && ! empty($response['launch_url'])) {
-                return [
-                    'status' => 1,
-                    'launch_url' => $response['launch_url'],
-                    'message' => 'Game launched successfully',
-                ];
+            Log::info('Nexus game_launch execution', [
+                'payload' => $payload,
+                'response' => $response,
+            ]);
+
+            if ($response) {
+                $launchUrl = $response['launch_url']
+                    ?? $response['data']['launch_url']
+                    ?? $response['url']
+                    ?? $response['data']['url']
+                    ?? null;
+
+                if (! empty($launchUrl)) {
+                    return [
+                        'status' => 1,
+                        'launch_url' => $launchUrl,
+                        'message' => 'Game launched successfully',
+                    ];
+                }
+
+                if (isset($response['msg'])) {
+                    Log::warning("Nexus game_launch returned status 0 / error: {$response['msg']}", [
+                        'user' => $user->user_code,
+                        'provider' => $providerCode,
+                        'game' => $gameCode,
+                        'response' => $response,
+                    ]);
+                }
             }
         }
 
         // Mock / Interactive Demo frame fallback for testing before IP whitelist
         $demoUrl = route('game.mock-frame', [
             'provider' => strtolower($providerCode),
-            'game' => $gameCode,
+            'game' => $gameCode ?: 'live',
             'user' => $user->user_code,
         ]);
 
