@@ -343,6 +343,7 @@ class NexusGgrService
                         ?? $gData['url_thumb']
                         ?? null;
                     $bannerUrl = $this->constructCdnBannerUrl($code, $gameCode, $rawBanner);
+                    $category = $this->categorizeGame($gameType, $gameName, $code);
                     $slug = Str::slug($gameName.'-'.$gameCode);
 
                     $game = Game::updateOrCreate(

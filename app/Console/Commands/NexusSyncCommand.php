@@ -2,6 +2,8 @@
 
 namespace App\Console\Commands;
 
+use App\Models\Game;
+use App\Models\Provider;
 use App\Services\NexusGgrService;
 use Illuminate\Console\Command;
 
@@ -12,7 +14,7 @@ class NexusSyncCommand extends Command
      *
      * @var string
      */
-    protected $signature = 'nexus:sync {--provider= : Specific provider code (e.g. PRAGMATIC)}';
+    protected $signature = 'nexus:sync {--provider= : Specific provider code (e.g. PRAGMATIC)} {--fresh : Wipe all games and providers before syncing}';
 
     /**
      * The console command description.
@@ -27,6 +29,20 @@ class NexusSyncCommand extends Command
     public function handle(NexusGgrService $service): int
     {
         $provider = $this->option('provider');
+        $fresh = $this->option('fresh');
+
+        if ($fresh) {
+            $this->warn('Wiping existing games and providers table...');
+            if ($provider) {
+                Game::where('provider_code', strtoupper($provider))->delete();
+                $this->info("Deleted games for provider [{$provider}].");
+            } else {
+                Game::truncate();
+                Provider::truncate();
+                $this->info('All games and providers truncated.');
+            }
+        }
+
         $this->info('Starting NexusGGR synchronization'.($provider ? " for provider: [{$provider}]" : ' for all providers').'...');
 
         $startTime = microtime(true);
