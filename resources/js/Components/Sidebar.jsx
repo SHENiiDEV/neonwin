@@ -10,27 +10,15 @@ function WalletBalanceDisplay({ balance = 0 }) {
     const num = Number(balance || 0);
     const formatted = num.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
     
-    // Choose dynamic text size based on character length so it never overflows
-    let sizeClass = 'text-[22px]';
-    if (formatted.length > 15) {
-        sizeClass = 'text-[13px]';
-    } else if (formatted.length > 12) {
-        sizeClass = 'text-[15px]';
-    } else if (formatted.length > 9) {
-        sizeClass = 'text-[18px]';
-    }
+    // Auto-scale font size so large numbers fit perfectly in the card
+    const fontSize = formatted.length > 14 ? '14px' : (formatted.length > 10 ? '17px' : '21px');
 
     return (
-        <div className="flex items-baseline justify-between gap-1.5 my-2 min-w-0 w-full overflow-hidden">
-            <span 
-                className={`font-heading font-bold text-white tracking-tight tabular-nums truncate ${sizeClass}`}
-                title={`${formatted} SC`}
-            >
+        <div className="nw-wallet-balance" title={`${formatted} SC`}>
+            <span style={{ fontSize, color: '#ffffff', fontWeight: 700, fontVariantNumeric: 'tabular-nums' }}>
                 {formatted}
             </span>
-            <span className="text-xs font-bold text-yellow-400 shrink-0 font-sans tracking-wide">
-                SC
-            </span>
+            <small>SC</small>
         </div>
     );
 }
