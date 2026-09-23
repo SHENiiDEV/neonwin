@@ -157,17 +157,21 @@ export default function GamePlayer({ game, launchUrl, isMock = false, relatedGam
                         {/* Top Action Toolbar */}
                         <div className="flex items-center gap-2.5">
                             {/* Live Balance */}
-                            <div className="px-3.5 py-1.5 rounded-xl bg-gradient-to-r from-[#1b172a] to-[#131524] border border-yellow-500/30 flex items-center gap-2 shadow-[0_0_15px_rgba(234,179,8,0.15)]">
-                                <div className="w-5 h-5 rounded-lg bg-yellow-500/20 border border-yellow-400/40 flex items-center justify-center">
+                            <div className="px-3.5 py-1.5 rounded-xl bg-gradient-to-r from-[#1b172a] to-[#131524] border border-yellow-500/30 flex items-center gap-2.5 shadow-[0_0_15px_rgba(234,179,8,0.15)]">
+                                <div className="w-6 h-6 rounded-lg bg-yellow-500/20 border border-yellow-400/40 flex items-center justify-center flex-shrink-0">
                                     <Coins className="w-3.5 h-3.5 text-yellow-400 animate-pulse" />
                                 </div>
                                 <div className="flex flex-col text-left">
-                                    <span className="text-[9px] uppercase font-bold text-yellow-400/80 leading-none">Coins Balance</span>
+                                    <div className="flex items-center gap-1.5">
+                                        <span className="text-[9px] uppercase font-bold text-yellow-400/80 leading-none">Coins</span>
+                                        <span className="text-[9px] text-gray-400 font-mono">≈ {((Number(currentBalance) || 0) / 100000).toFixed(2)} SC</span>
+                                    </div>
                                     <span className="text-sm font-mono font-black text-white tracking-tight leading-tight">
                                         {Math.floor(Number(currentBalance)).toLocaleString()}
                                     </span>
                                 </div>
                             </div>
+
 
 
                             {/* Favorite Button */}
