@@ -38,9 +38,13 @@ class NexusGgrService
      */
     protected function post(array $payload): ?array
     {
+        $token = ! empty($this->agentToken) ? $this->agentToken : $this->agentSecret;
+        $secret = ! empty($this->agentSecret) ? $this->agentSecret : $this->agentToken;
+
         $body = array_merge([
             'agent_code' => $this->agentCode,
-            'agent_token' => $this->agentToken,
+            'agent_token' => $token,
+            'agent_secret' => $secret,
         ], $payload);
 
         try {
@@ -250,8 +254,6 @@ class NexusGgrService
     {
         $payload = [
             'method' => 'game_launch',
-            'agent_code' => $this->agentCode,
-            'agent_token' => $this->agentToken,
             'user_code' => $user->user_code,
             'provider_code' => strtoupper($providerCode),
             'game_code' => $gameCode,
