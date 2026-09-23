@@ -33,8 +33,8 @@ export default function AuthModal({ isOpen, onClose, initialMode = 'login' }) {
     }, [initialMode, isOpen]);
 
     const loginForm = useForm({
-        email: 'player@neonwin.com',
-        password: 'password',
+        email: '',
+        password: '',
     });
 
     const registerForm = useForm({
@@ -64,13 +64,6 @@ export default function AuthModal({ isOpen, onClose, initialMode = 'login' }) {
     const handleRegister = (e) => {
         e.preventDefault();
         registerForm.post('/register', {
-            preserveScroll: true,
-            onSuccess: () => onClose(),
-        });
-    };
-
-    const handleDemoLogin = () => {
-        router.post('/demo-login', {}, {
             preserveScroll: true,
             onSuccess: () => onClose(),
         });
@@ -166,7 +159,7 @@ export default function AuthModal({ isOpen, onClose, initialMode = 'login' }) {
                         <p id="auth-modal-description">
                             {mode === 'register' 
                                 ? 'Complete your verified details below to enable seamless payments & redemptions.' 
-                                : 'Enter your credentials or use quick 1-click demo login below.'}
+                                : 'Enter your email and password to access your player account and games.'}
                         </p>
                     </header>
 
@@ -507,18 +500,6 @@ export default function AuthModal({ isOpen, onClose, initialMode = 'login' }) {
                             </div>
                         </form>
                     )}
-
-                    {/* Quick 1-Click Fast Demo Login Switch */}
-                    <div className="mt-4 pt-3.5 border-t border-[#2e213d]">
-                        <button 
-                            type="button"
-                            onClick={handleDemoLogin}
-                            className="w-full py-2 px-4 rounded-xl bg-[#1b1528] hover:bg-[#261d38] border border-amber-500/30 hover:border-amber-400/60 text-yellow-300 text-xs font-bold transition flex items-center justify-center gap-2 shadow-inner"
-                        >
-                            <Zap size={14} className="text-yellow-400 fill-yellow-400 animate-pulse" />
-                            <span>⚡ Quick 1-Click Instant Demo Login (CyberPlayer)</span>
-                        </button>
-                    </div>
 
                     <footer className="nw-topup-foot">
                         <span>18+ · Social Casino Play</span>

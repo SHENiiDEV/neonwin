@@ -1,9 +1,10 @@
 import React, { useState, useEffect } from 'react';
-import { Link } from '@inertiajs/react';
+import { Link, usePage } from '@inertiajs/react';
 import { Crosshair, Trophy, Flame, Zap, ArrowRight, Play, Sparkles, Clock, CheckCircle2 } from 'lucide-react';
 import axios from 'axios';
 
 export default function ChallengesSection() {
+    const { auth } = usePage().props;
     const [challenges, setChallenges] = useState([]);
     const [loading, setLoading] = useState(true);
 
@@ -78,6 +79,12 @@ export default function ChallengesSection() {
                                         </span>
                                         <Link 
                                             href={`/game/${c.game_code}`}
+                                            onClick={(e) => {
+                                                if (!auth?.user) {
+                                                    e.preventDefault();
+                                                    window.dispatchEvent(new CustomEvent('open-auth-modal', { detail: { mode: 'register' } }));
+                                                }
+                                            }}
                                             className="px-3.5 py-1.5 rounded-xl bg-pink-600 hover:bg-pink-500 text-white font-heading font-black text-xs uppercase tracking-wider flex items-center gap-1.5 transition shadow-sm"
                                         >
                                             <Play size={11} fill="currentColor" /> Play & Hunt

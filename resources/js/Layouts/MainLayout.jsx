@@ -39,8 +39,20 @@ export default function MainLayout({ children, highlights = [] }) {
                 setTipModalOpen(false);
             }
         };
+
+        const handleCustomOpenAuth = event => {
+            const mode = event.detail?.mode || 'register';
+            setAuthMode(mode);
+            setAuthModalOpen(true);
+        };
+
         document.addEventListener('keydown', onEscape);
-        return () => document.removeEventListener('keydown', onEscape);
+        window.addEventListener('open-auth-modal', handleCustomOpenAuth);
+
+        return () => {
+            document.removeEventListener('keydown', onEscape);
+            window.removeEventListener('open-auth-modal', handleCustomOpenAuth);
+        };
     }, []);
 
     const openAuth = (mode = 'register') => { setAuthMode(mode); setAuthModalOpen(true); };

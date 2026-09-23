@@ -48,7 +48,6 @@ Route::post('/contact', [LegalController::class, 'submitContact'])->name('legal.
 Route::post('/login', [AuthController::class, 'login'])->name('login');
 Route::post('/register', [AuthController::class, 'register'])->name('register');
 Route::post('/logout', [AuthController::class, 'logout'])->name('logout');
-Route::post('/demo-login', [AuthController::class, 'demoLogin'])->name('demo.login');
 
 // Wallet & Chat
 Route::post('/deposit', [DepositController::class, 'deposit'])->name('deposit');

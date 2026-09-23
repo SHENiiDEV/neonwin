@@ -7,10 +7,8 @@ use App\Models\Game;
 use App\Models\LiveCommunityWin;
 use App\Models\Provider;
 use App\Models\Tournament;
-use App\Models\User;
 use Carbon\Carbon;
 use Illuminate\Database\Seeder;
-use Illuminate\Support\Facades\Hash;
 
 class DatabaseSeeder extends Seeder
 {
@@ -19,22 +17,7 @@ class DatabaseSeeder extends Seeder
      */
     public function run(): void
     {
-        // 1. Seed Demo User
-        $user = User::firstOrCreate(
-            ['email' => 'player@neonwin.com'],
-            [
-                'name' => 'WildDragon09',
-                'user_code' => 'ZP-123456',
-                'password' => Hash::make('password'),
-                'game_balance' => 1500.50,
-                'vip_xp' => 12500,
-                'vip_level' => 3,
-                'currency' => 'USD',
-                'avatar' => 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=150&auto=format&fit=crop&q=80',
-            ]
-        );
-
-        // 2. Seed Providers
+        // 1. Seed Providers
         $providersData = [
             ['code' => 'PRAGMATIC', 'name' => 'Pragmatic Play', 'logo_url' => 'https://assets.bd34fgabh.com/img/pragmatic.png'],
             ['code' => 'HACKSAW', 'name' => 'Hacksaw Gaming', 'logo_url' => 'https://assets.bd34fgabh.com/img/hacksaw.png'],

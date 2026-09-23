@@ -2,8 +2,11 @@
 
 namespace App\Http\Controllers;
 
+use App\Mail\TopUpInvoiceMail;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\Log;
+use Illuminate\Support\Facades\Mail;
 
 class DepositController extends Controller
 {
@@ -57,8 +60,8 @@ class DepositController extends Controller
 
         // Send Top-Up Confirmation with PDF Invoice
         try {
-            \Illuminate\Support\Facades\Mail::to($user->email)->send(
-                new \App\Mail\TopUpInvoiceMail(
+            Mail::to($user->email)->send(
+                new TopUpInvoiceMail(
                     user: $user,
                     coins: $coinsCredited,
                     price: $price,
@@ -68,7 +71,7 @@ class DepositController extends Controller
                 )
             );
         } catch (\Throwable $e) {
-            \Illuminate\Support\Facades\Log::warning('TopUp invoice email could not be sent: '.$e->getMessage());
+            Log::warning('TopUp invoice email could not be sent: '.$e->getMessage());
         }
 
         return response()->json([

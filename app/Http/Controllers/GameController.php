@@ -27,21 +27,10 @@ class GameController extends Controller
             ->orWhere('game_code', $slug)
             ->firstOrFail();
 
-        // Get authenticated user or create a temporary demo user session
+        // Require authenticated user
         $user = Auth::user();
         if (! $user) {
-            $user = User::firstOrCreate(
-                ['email' => 'player@neonwin.com'],
-                [
-                    'name' => 'CyberPlayer',
-                    'password' => bcrypt('secret123'),
-                    'game_balance' => 1500.00,
-                    'vip_xp' => 1250,
-                    'vip_level' => 2,
-                    'avatar' => 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=150&auto=format&fit=crop&q=80',
-                ]
-            );
-            Auth::login($user);
+            return redirect()->route('home')->with('error', 'Please log in or create an account to play games.');
         }
 
         $launchResult = $this->nexusService->launchGame(

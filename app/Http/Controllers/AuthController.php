@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Mail\WelcomeMail;
 use App\Models\ReferralEarning;
 use App\Models\User;
 use App\Models\UserCrate;
@@ -9,6 +10,8 @@ use Carbon\Carbon;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Hash;
+use Illuminate\Support\Facades\Log;
+use Illuminate\Support\Facades\Mail;
 use Illuminate\Validation\Rule;
 
 class AuthController extends Controller
@@ -136,9 +139,9 @@ class AuthController extends Controller
 
         // Send Welcome Email via PrivateEmail SMTP
         try {
-            \Illuminate\Support\Facades\Mail::to($user->email)->send(new \App\Mail\WelcomeMail($user));
+            Mail::to($user->email)->send(new WelcomeMail($user));
         } catch (\Throwable $e) {
-            \Illuminate\Support\Facades\Log::warning('Welcome email could not be sent: ' . $e->getMessage());
+            Log::warning('Welcome email could not be sent: '.$e->getMessage());
         }
 
         Auth::login($user);
@@ -154,34 +157,5 @@ class AuthController extends Controller
         $request->session()->regenerateToken();
 
         return redirect('/')->with('success', 'Logged out successfully');
-    }
-
-    public function demoLogin(Request $request)
-    {
-        $user = User::firstOrCreate(
-            ['email' => 'player@neonwin.com'],
-            [
-                'name' => 'Cyber',
-                'surname' => 'Player',
-                'phone' => '+35799123456',
-                'date_of_birth' => '1998-05-15',
-                'street' => 'Agiou Pavlou 15',
-                'city' => 'Nicosia',
-                'country' => 'Cyprus',
-                'postcode' => '1105',
-                'terms_accepted' => true,
-                'password' => bcrypt('secret123'),
-                'game_balance' => 5000000.00,
-                'vip_xp' => 1200,
-                'vip_level' => 2,
-                'currency' => 'COINS',
-                'avatar' => 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=150&auto=format&fit=crop&q=80',
-            ]
-        );
-
-        Auth::login($user);
-        $request->session()->regenerate();
-
-        return redirect()->back()->with('success', 'Logged in as Demo User');
     }
 }

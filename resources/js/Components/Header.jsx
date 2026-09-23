@@ -30,15 +30,24 @@ const legacyPosters = {
 };
 
 function SearchGameItem({ game, onSelect }) {
+    const { auth } = usePage().props;
     const [imageError, setImageError] = useState(false);
     const posterSrc = legacyPosters[game.game_code] || game.banner_url;
     const gameHref = `/game/${game.slug || game.game_code}`;
     const formattedProvider = (game.provider_code || 'PRAGMATIC').replaceAll('_', ' ');
 
+    const handleSelectGame = (e) => {
+        onSelect();
+        if (!auth?.user) {
+            e.preventDefault();
+            window.dispatchEvent(new CustomEvent('open-auth-modal', { detail: { mode: 'register' } }));
+        }
+    };
+
     return (
         <Link
             href={gameHref}
-            onClick={onSelect}
+            onClick={handleSelectGame}
             className="flex items-center gap-3.5 p-3 hover:bg-[#201732] transition group"
         >
             {/* Game Thumbnail */}

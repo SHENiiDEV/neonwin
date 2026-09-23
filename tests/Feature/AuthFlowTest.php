@@ -2,6 +2,7 @@
 
 namespace Tests\Feature;
 
+use App\Models\Game;
 use App\Models\User;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Tests\TestCase;
@@ -123,11 +124,21 @@ class AuthFlowTest extends TestCase
         $this->assertAuthenticated();
     }
 
-    public function test_demo_login(): void
+    public function test_guest_cannot_launch_game_and_is_redirected_to_home(): void
     {
-        $response = $this->post('/demo-login');
+        $game = Game::create([
+            'provider_code' => 'PRAGMATIC',
+            'game_code' => 'vs20olympgate',
+            'name' => 'Gates of Olympus',
+            'slug' => 'gates-of-olympus',
+            'category' => 'slots',
+            'status' => true,
+        ]);
 
-        $response->assertSessionHas('success');
-        $this->assertAuthenticated();
+        $response = $this->get("/game/{$game->slug}");
+
+        $response->assertRedirect('/');
+        $response->assertSessionHas('error', 'Please log in or create an account to play games.');
+        $this->assertGuest();
     }
 }

@@ -25,7 +25,7 @@ export default function GamePlayer({ game, launchUrl, isMock = false, relatedGam
 
     const [isLoading, setIsLoading] = useState(true);
     const [isFullscreen, setIsFullscreen] = useState(false);
-    const [currentBalance, setCurrentBalance] = useState(user?.game_balance || 5000000);
+    const [currentBalance, setCurrentBalance] = useState(user?.game_balance || 0);
     const [favorite, setFavorite] = useState(() => {
         try {
             return JSON.parse(localStorage.getItem('neonwin-favorites') || '[]').includes(game.id);
