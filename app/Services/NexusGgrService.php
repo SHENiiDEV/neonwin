@@ -312,7 +312,60 @@ class NexusGgrService
     }
 
     /**
-     * 7. Full Synchronization Routine
+     * 7. Agent and User balance check (method: money_info)
+     */
+    public function getMoneyInfo(?string $userCode = null, bool $allUsers = false): ?array
+    {
+        $payload = ['method' => 'money_info'];
+        if ($allUsers) {
+            $payload['all_users'] = true;
+        } elseif (! empty($userCode)) {
+            $payload['user_code'] = $userCode;
+        }
+
+        return $this->post($payload);
+    }
+
+    /**
+     * 8. Game log history (method: get_game_log)
+     */
+    public function getGameLog(?string $userCode = null, string $gameType = 'slot', ?string $start = null, ?string $end = null, int $page = 0, int $perPage = 1000): ?array
+    {
+        $payload = [
+            'method' => 'get_game_log',
+            'game_type' => $gameType,
+            'page' => $page,
+            'perPage' => min($perPage, 1000000),
+        ];
+
+        if (! empty($userCode)) {
+            $payload['user_code'] = $userCode;
+        }
+        if (! empty($start)) {
+            $payload['start'] = $start;
+        }
+        if (! empty($end)) {
+            $payload['end'] = $end;
+        }
+
+        return $this->post($payload);
+    }
+
+    /**
+     * 9. In-Game History URL (method: get_game_history, Pragmatic Slot only)
+     */
+    public function getGameHistory(string $userCode, string $gameCode, string $providerCode = 'PRAGMATIC'): ?array
+    {
+        return $this->post([
+            'method' => 'get_game_history',
+            'user_code' => $userCode,
+            'provider_code' => strtoupper($providerCode),
+            'game_code' => $gameCode,
+        ]);
+    }
+
+    /**
+     * 10. Full Synchronization Routine
      */
     public function syncGames(?string $targetProvider = null, ?callable $logger = null): array
     {

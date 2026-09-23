@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Models\Game;
 use App\Models\GameTransaction;
 use App\Models\LiveCommunityWin;
 use App\Models\User;
@@ -209,11 +210,12 @@ class GgrGoldApiController extends Controller
             if ($coinsToCredit > 0) {
                 $multiplier = $coinsToDebit > 0 ? round($coinsToCredit / $coinsToDebit, 2) : 10.0;
                 if ($winMoney >= 50 || $multiplier >= 5.0) {
+                    $game = Game::where('game_code', $gameCode)->first();
                     LiveCommunityWin::create([
                         'user_name' => $user->name,
                         'user_avatar' => $user->avatar,
-                        'game_name' => $gameCode ? ucwords(str_replace(['_', '-'], ' ', $gameCode)) : 'Pragmatic Slot',
-                        'game_image' => 'https://assets.bd34fgabh.com/apps/game-assets/'.($gameCode ?: 'vs20olympgate').'/'.($gameCode ?: 'vs20olympgate').'_800x600_NB.avif',
+                        'game_name' => $game ? $game->name : ($gameCode ? ucwords(str_replace(['_', '-'], ' ', $gameCode)) : 'Slot Game'),
+                        'game_image' => $game?->banner_url ?: '',
                         'bet_amount' => $coinsToDebit,
                         'multiplier' => $multiplier,
                         'win_amount' => $coinsToCredit,
