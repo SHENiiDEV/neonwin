@@ -26,11 +26,11 @@ class NexusGgrService
     public function __construct()
     {
         $this->baseUrl = config('nexus.base_url', 'https://api.nexusggr.eu');
-        $this->agentCode = config('nexus.agent_code', 'zenithplay');
+        $this->agentCode = config('nexus.agent_code', 'neonwin');
         $this->agentToken = config('nexus.agent_token', '87f3f75c9501543d36bb0ebfcb473a72');
         $this->agentSecret = config('nexus.agent_secret', '5562754eb33e45937673a6bacdd8be9d');
         $this->mockMode = (bool) config('nexus.mock_mode', false);
-        $this->lobbyUrl = config('nexus.lobby_url', config('app.url', 'http://localhost:8888'));
+        $this->lobbyUrl = config('nexus.lobby_url', config('app.url', 'https://neonwin.co.uk'));
     }
 
     /**
@@ -38,13 +38,10 @@ class NexusGgrService
      */
     protected function post(array $payload): ?array
     {
-        $token = ! empty($this->agentToken) ? $this->agentToken : $this->agentSecret;
-        $secret = ! empty($this->agentSecret) ? $this->agentSecret : $this->agentToken;
-
         $body = array_merge([
             'agent_code' => $this->agentCode,
-            'agent_token' => $token,
-            'agent_secret' => $secret,
+            'agent_token' => $this->agentToken,
+            'agent_secret' => $this->agentSecret,
         ], $payload);
 
         try {
