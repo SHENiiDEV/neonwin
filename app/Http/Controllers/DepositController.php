@@ -32,21 +32,21 @@ class DepositController extends Controller
 
                 return response()->json([
                     'status' => 'error',
-                    'message' => "You have already claimed your daily free 1.00 SC. Next claim available in {$diff}.",
+                    'message' => "You have already claimed your daily free 0.02 SC. Next claim available in {$diff}.",
                 ], 422);
             }
 
-            $dailySc = 1.00;
+            $dailySc = 0.02;
             $user->increment('game_balance', $dailySc);
             $user->update(['last_daily_bonus_at' => now()]);
-            $user->awardVipXp(10);
+            $user->awardVipXp(1);
 
             return response()->json([
                 'status' => 'success',
                 'new_balance' => (float) $user->game_balance,
                 'can_claim_daily_bonus' => false,
                 'next_daily_bonus_at' => $user->nextDailyBonusAt()?->toIso8601String(),
-                'message' => 'Successfully claimed your free 1.00 SC Daily Bonus! Next claim available in 24 hours.',
+                'message' => 'Successfully claimed your free 0.02 SC Daily Bonus! Next claim available in 24 hours.',
             ]);
         }
 

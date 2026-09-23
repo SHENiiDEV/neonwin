@@ -482,7 +482,7 @@ export default function Profile({ stats = {}, transactions = [], vipTiers = [] }
                                                 <span className="text-lg">🎁</span>
                                                 <div>
                                                     <strong className="block text-xs text-white">Daily Free Claim</strong>
-                                                    <span className="text-[10px] text-purple-300">100,000 Coins every 24h</span>
+                                                    <span className="text-[10px] text-purple-300">0.02 SC every 24h</span>
                                                 </div>
                                             </div>
                                             <ArrowUpRight size={14} className="text-purple-400 group-hover:translate-x-0.5 transition" />

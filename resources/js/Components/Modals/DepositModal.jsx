@@ -85,13 +85,13 @@ export default function DepositModal({ isOpen, onClose }) {
         requestInFlight.current = true;
         setProcessing(type);
         setFeedback(null);
-        const creditAmount = type === 'daily' ? 1.0 : totalCoins;
+        const creditAmount = type === 'daily' ? 0.02 : totalCoins;
         const convertedPrice = Math.round(selectedPack.basePrice * curr.rate);
         try {
             const response = await axios.post('/deposit', {
                 amount: creditAmount,
                 method: type === 'daily' ? 'daily_sc_bonus' : 'card',
-                pack_name: type === 'daily' ? 'Daily Free 1.00 SC' : selectedPack.name,
+                pack_name: type === 'daily' ? 'Daily Free 0.02 SC' : selectedPack.name,
                 price: type === 'daily' ? 0 : convertedPrice,
                 currency: selectedCurrency,
             });
@@ -103,7 +103,7 @@ export default function DepositModal({ isOpen, onClose }) {
             setFeedback({ 
                 type: 'success', 
                 message: type === 'daily' 
-                    ? 'Claimed 1.00 Free Daily SC! Balance updated.' 
+                    ? 'Claimed 0.02 Free Daily SC! Balance updated.' 
                     : `${creditAmount.toFixed(2)} SC added to your wallet (Rate: 1 EUR = 0.5 SC). Receipt sent to your email.` 
             });
             router.reload({ only: ['auth'] });
@@ -191,11 +191,11 @@ export default function DepositModal({ isOpen, onClose }) {
                         <div className="nw-daily-pack">
                             <span className="nw-daily-icon"><Gift size={29} strokeWidth={1.5} /></span>
                             <span className="nw-pack-name">Your daily free claim</span>
-                            <strong>1.00<small> SC</small></strong>
+                            <strong>0.02<small> SC</small></strong>
                             <span className="nw-daily-caption">
                                 {!canClaimDaily && countdownStr 
                                     ? `Next claim in: ${countdownStr}` 
-                                    : 'Free 1.00 SC every 24 hours.'}
+                                    : 'Free 0.02 SC every 24 hours.'}
                             </span>
                             <button 
                                 disabled={!!processing || !canClaimDaily} 
@@ -207,7 +207,7 @@ export default function DepositModal({ isOpen, onClose }) {
                                 ) : !canClaimDaily ? (
                                     <>Claimed ({countdownStr || 'Locked'}) <Check size={13} /></>
                                 ) : (
-                                    <>Claim Free 1.00 SC <ArrowRight size={13} /></>
+                                    <>Claim Free 0.02 SC <ArrowRight size={13} /></>
                                 )}
                             </button>
                         </div>
