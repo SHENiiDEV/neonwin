@@ -41,7 +41,6 @@ class NexusGgrService
         $body = array_merge([
             'agent_code' => $this->agentCode,
             'agent_token' => $this->agentToken,
-            'agent_secret' => $this->agentSecret,
         ], $payload);
 
         try {
