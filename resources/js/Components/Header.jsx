@@ -23,16 +23,10 @@ import {
 import axios from 'axios';
 import { playCoinSound } from '../utils/soundEffects';
 
-const legacyPosters = {
-    vs20sweetbonz: '/images/games/sweet-bonanza.avif',
-    vs40buffking: '/images/games/buffalo-king.avif',
-    vs20sugarush: '/images/games/sugar-rush.avif',
-};
-
 function SearchGameItem({ game, onSelect }) {
     const { auth } = usePage().props;
     const [imageError, setImageError] = useState(false);
-    const posterSrc = legacyPosters[game.game_code] || game.banner_url;
+    const posterSrc = game.banner_url || `https://assets.bd34fgabh.com/apps/game-assets/${game.game_code || game.slug}/${game.game_code || game.slug}_800x600_NB.avif`;
     const gameHref = `/game/${game.slug || game.game_code}`;
     const formattedProvider = (game.provider_code || 'PRAGMATIC').replaceAll('_', ' ');
 
@@ -52,19 +46,12 @@ function SearchGameItem({ game, onSelect }) {
         >
             {/* Game Thumbnail */}
             <div className="relative w-12 h-12 rounded-xl overflow-hidden bg-[#0c0914] border border-[#332545] flex-shrink-0 flex items-center justify-center">
-                {posterSrc && !imageError ? (
-                    <img 
-                        src={posterSrc} 
-                        alt={game.name} 
-                        className="w-full h-full object-cover group-hover:scale-110 transition duration-300"
-                        onError={() => setImageError(true)}
-                        loading="lazy"
-                    />
-                ) : (
-                    <div className="w-full h-full flex items-center justify-center bg-gradient-to-br from-[#241738] to-[#120e1d] text-purple-400">
-                        {game.category === 'live' ? <Radio size={18} /> : game.category === 'crash' ? <Rocket size={18} /> : game.category === 'fishing' ? <Fish size={18} /> : <Gamepad2 size={18} />}
-                    </div>
-                )}
+                <img 
+                    src={posterSrc} 
+                    alt={game.name} 
+                    className="w-full h-full object-cover group-hover:scale-110 transition duration-300"
+                    loading="lazy"
+                />
                 {game.is_popular && (
                     <span className="absolute top-1 right-1 w-2 h-2 rounded-full bg-amber-400 shadow-[0_0_6px_rgba(251,191,36,0.8)]" />
                 )}

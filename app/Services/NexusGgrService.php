@@ -118,8 +118,19 @@ class NexusGgrService
             'provider_code' => strtoupper($providerCode),
         ]);
 
-        if ($response && isset($response['games']) && is_array($response['games'])) {
-            return $response['games'];
+        if ($response) {
+            if (isset($response['games']) && is_array($response['games'])) {
+                return $response['games'];
+            }
+            if (isset($response['data']) && is_array($response['data'])) {
+                return isset($response['data']['games']) && is_array($response['data']['games']) ? $response['data']['games'] : $response['data'];
+            }
+            if (isset($response['game_list']) && is_array($response['game_list'])) {
+                return $response['game_list'];
+            }
+            if (isset($response['list']) && is_array($response['list'])) {
+                return $response['list'];
+            }
         }
 
         // Try v1 fallback if v2 returned empty
@@ -128,8 +139,13 @@ class NexusGgrService
                 'method' => 'game_list',
                 'provider_code' => strtoupper($providerCode),
             ]);
-            if ($fallbackResp && isset($fallbackResp['games']) && is_array($fallbackResp['games'])) {
-                return $fallbackResp['games'];
+            if ($fallbackResp) {
+                if (isset($fallbackResp['games']) && is_array($fallbackResp['games'])) {
+                    return $fallbackResp['games'];
+                }
+                if (isset($fallbackResp['data']) && is_array($fallbackResp['data'])) {
+                    return $fallbackResp['data'];
+                }
             }
         }
 
@@ -158,12 +174,23 @@ class NexusGgrService
     }
 
     /**
-     * 4. Smart CDN Banner Mapper
+     * 4. Smart CDN Banner Mapper (No placeholder stock photos)
      */
     public function constructCdnBannerUrl(string $providerCode, string $gameCode, ?string $originalBanner = null): string
     {
-        if (! empty($originalBanner) && filter_var($originalBanner, FILTER_VALIDATE_URL)) {
-            return $originalBanner;
+        if (! empty($originalBanner)) {
+            $originalBanner = trim($originalBanner);
+            if (filter_var($originalBanner, FILTER_VALIDATE_URL)) {
+                return $originalBanner;
+            }
+            if (str_starts_with($originalBanner, '//')) {
+                return 'https:'.$originalBanner;
+            }
+            if (str_starts_with($originalBanner, '/')) {
+                return rtrim($this->baseUrl, '/').$originalBanner;
+            }
+
+            return rtrim($this->baseUrl, '/').'/'.$originalBanner;
         }
 
         $provider = strtoupper(trim($providerCode));
@@ -173,6 +200,7 @@ class NexusGgrService
             case 'PRAGMATIC':
             case 'PRAGMATICPLAY':
             case 'REELKINGDOM':
+            case 'PP_LIVE_PRO':
                 return "https://assets.bd34fgabh.com/apps/game-assets/{$code}/{$code}_800x600_NB.avif";
 
             case 'PGSOFT':
@@ -184,19 +212,8 @@ class NexusGgrService
             case 'SPRIBE':
                 return "https://spribe.co/assets/games/{$code}/thumbnail.png";
 
-            case 'PP_LIVE_PRO':
-            case 'EVOLUTION':
-                return 'https://images.unsplash.com/photo-1511193311914-0346f16efe90?w=600&auto=format&fit=crop&q=80';
-
-            case 'HABANERO':
-                return 'https://images.unsplash.com/photo-1518709268805-4e9042af9f23?w=600&auto=format&fit=crop&q=80';
-
-            case 'BOOONGO':
-            case 'PLAYSON':
-                return 'https://images.unsplash.com/photo-1606167668584-78701c57f13d?w=600&auto=format&fit=crop&q=80';
-
             default:
-                return 'https://images.unsplash.com/photo-1596838132731-3301c3fd4317?w=600&auto=format&fit=crop&q=80';
+                return "https://assets.bd34fgabh.com/apps/game-assets/{$code}/{$code}_800x600_NB.avif";
         }
     }
 
@@ -316,8 +333,17 @@ class NexusGgrService
                     $rawName = $gData['game_name'] ?? $gData['name'] ?? $gameCode;
                     $gameName = $this->parseGameName($rawName, $gameCode);
                     $gameType = $gData['game_type'] ?? $gData['type'] ?? 'slot';
-                    $category = $this->categorizeGame($gameType, $gameName, $code);
-                    $bannerUrl = $this->constructCdnBannerUrl($code, $gameCode, $gData['banner'] ?? $gData['image'] ?? null);
+                    $rawBanner = $gData['banner']
+                        ?? $gData['image']
+                        ?? $gData['img']
+                        ?? $gData['banner_url']
+                        ?? $gData['icon']
+                        ?? $gData['thumbnail']
+                        ?? $gData['game_banner']
+                        ?? $gData['cover']
+                        ?? $gData['url_thumb']
+                        ?? null;
+                    $bannerUrl = $this->constructCdnBannerUrl($code, $gameCode, $rawBanner);
                     $slug = Str::slug($gameName.'-'.$gameCode);
 
                     $game = Game::updateOrCreate(

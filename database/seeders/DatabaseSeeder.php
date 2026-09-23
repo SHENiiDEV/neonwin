@@ -32,9 +32,9 @@ class DatabaseSeeder extends Seeder
             Provider::updateOrCreate(['code' => $p['code']], $p);
         }
 
-        // 3. Seed Comprehensive Games with Official Provider CDN Posters
+        // 2. Seed Comprehensive Games with Official Provider CDN Posters
         $gamesData = [
-            // Popular Pragmatic & PG Slots
+            // Popular Pragmatic Slots
             [
                 'provider_code' => 'PRAGMATIC',
                 'game_code' => 'vs20olympgate',
@@ -69,17 +69,6 @@ class DatabaseSeeder extends Seeder
                 'is_featured' => false,
             ],
             [
-                'provider_code' => 'PGSOFT',
-                'game_code' => 'fortune-tiger',
-                'name' => 'Fortune Tiger',
-                'slug' => 'fortune-tiger',
-                'banner_url' => 'https://assets.bd34fgabh.com/img/pgsoft/fortune-tiger.jpg',
-                'category' => 'slots',
-                'rtp' => 96.81,
-                'is_popular' => true,
-                'is_featured' => true,
-            ],
-            [
                 'provider_code' => 'PRAGMATIC',
                 'game_code' => 'vs20sugarush',
                 'name' => 'Sugar Rush',
@@ -92,37 +81,105 @@ class DatabaseSeeder extends Seeder
             ],
             [
                 'provider_code' => 'PRAGMATIC',
-                'game_code' => 'vs20alohaking',
-                'name' => 'Aloha Queen',
-                'slug' => 'aloha-queen',
-                'banner_url' => 'https://images.unsplash.com/photo-1518709268805-4e9042af9f23?w=600&auto=format&fit=crop&q=80',
+                'game_code' => 'vs20doghouse',
+                'name' => 'The Dog House Megaways',
+                'slug' => 'the-dog-house-megaways',
+                'banner_url' => 'https://assets.bd34fgabh.com/apps/game-assets/vs20doghouse/vs20doghouse_800x600_NB.avif',
                 'category' => 'slots',
-                'rtp' => 96.30,
+                'rtp' => 96.55,
+                'is_popular' => true,
+                'is_featured' => true,
+            ],
+            [
+                'provider_code' => 'PRAGMATIC',
+                'game_code' => 'vs20bigbass',
+                'name' => 'Big Bass Splash',
+                'slug' => 'big-bass-splash',
+                'banner_url' => 'https://assets.bd34fgabh.com/apps/game-assets/vs20bigbass/vs20bigbass_800x600_NB.avif',
+                'category' => 'fishing',
+                'rtp' => 96.71,
+                'is_popular' => true,
+                'is_featured' => true,
+            ],
+            [
+                'provider_code' => 'PRAGMATIC',
+                'game_code' => 'vs20starlight',
+                'name' => 'Starlight Princess',
+                'slug' => 'starlight-princess',
+                'banner_url' => 'https://assets.bd34fgabh.com/apps/game-assets/vs20starlight/vs20starlight_800x600_NB.avif',
+                'category' => 'slots',
+                'rtp' => 96.50,
+                'is_popular' => true,
+                'is_featured' => true,
+            ],
+            [
+                'provider_code' => 'PRAGMATIC',
+                'game_code' => 'vs20wolfgold',
+                'name' => 'Wolf Gold',
+                'slug' => 'wolf-gold',
+                'banner_url' => 'https://assets.bd34fgabh.com/apps/game-assets/vs20wolfgold/vs20wolfgold_800x600_NB.avif',
+                'category' => 'slots',
+                'rtp' => 96.01,
                 'is_popular' => true,
                 'is_featured' => false,
             ],
             [
                 'provider_code' => 'PRAGMATIC',
-                'game_code' => 'vs20clovercharm',
-                'name' => 'Clover Charm',
-                'slug' => 'clover-charm',
-                'banner_url' => 'https://images.unsplash.com/photo-1511193311914-0346f16efe90?w=600&auto=format&fit=crop&q=80',
+                'game_code' => 'vs20fruitsw',
+                'name' => 'Fruit Party',
+                'slug' => 'fruit-party',
+                'banner_url' => 'https://assets.bd34fgabh.com/apps/game-assets/vs20fruitsw/vs20fruitsw_800x600_NB.avif',
                 'category' => 'slots',
-                'rtp' => 96.20,
+                'rtp' => 96.47,
                 'is_popular' => true,
                 'is_featured' => false,
             ],
+            // PG Soft Slots
             [
                 'provider_code' => 'PGSOFT',
-                'game_code' => 'fortune-genie',
-                'name' => 'Fortune Genie',
-                'slug' => 'fortune-genie',
-                'banner_url' => 'https://images.unsplash.com/photo-1606167668584-78701c57f13d?w=600&auto=format&fit=crop&q=80',
+                'game_code' => 'fortune-tiger',
+                'name' => 'Fortune Tiger',
+                'slug' => 'fortune-tiger',
+                'banner_url' => 'https://assets.bd34fgabh.com/img/pgsoft/fortune-tiger.jpg',
+                'category' => 'slots',
+                'rtp' => 96.81,
+                'is_popular' => true,
+                'is_featured' => true,
+            ],
+            [
+                'provider_code' => 'PGSOFT',
+                'game_code' => 'fortune-ox',
+                'name' => 'Fortune Ox',
+                'slug' => 'fortune-ox',
+                'banner_url' => 'https://assets.bd34fgabh.com/img/pgsoft/fortune-ox.jpg',
                 'category' => 'slots',
                 'rtp' => 96.75,
                 'is_popular' => true,
                 'is_featured' => false,
             ],
+            [
+                'provider_code' => 'PGSOFT',
+                'game_code' => 'fortune-rabbit',
+                'name' => 'Fortune Rabbit',
+                'slug' => 'fortune-rabbit',
+                'banner_url' => 'https://assets.bd34fgabh.com/img/pgsoft/fortune-rabbit.jpg',
+                'category' => 'slots',
+                'rtp' => 96.75,
+                'is_popular' => true,
+                'is_featured' => false,
+            ],
+            [
+                'provider_code' => 'PGSOFT',
+                'game_code' => 'fortune-mouse',
+                'name' => 'Fortune Mouse',
+                'slug' => 'fortune-mouse',
+                'banner_url' => 'https://assets.bd34fgabh.com/img/pgsoft/fortune-mouse.jpg',
+                'category' => 'slots',
+                'rtp' => 96.96,
+                'is_popular' => true,
+                'is_featured' => false,
+            ],
+            // Hacksaw Slots
             [
                 'provider_code' => 'HACKSAW',
                 'game_code' => 'wanted-dead-wild',
@@ -136,22 +193,33 @@ class DatabaseSeeder extends Seeder
             ],
             [
                 'provider_code' => 'HACKSAW',
-                'game_code' => 'rip-city',
-                'name' => 'RIP City',
-                'slug' => 'rip-city',
-                'banner_url' => 'https://www-live.hacksawgaming.com/casino_thumbnails/1199.jpg',
+                'game_code' => 'dork-unit',
+                'name' => 'Dork Unit',
+                'slug' => 'dork-unit',
+                'banner_url' => 'https://www-live.hacksawgaming.com/casino_thumbnails/1172.jpg',
                 'category' => 'slots',
-                'rtp' => 96.22,
+                'rtp' => 96.24,
                 'is_popular' => true,
                 'is_featured' => false,
             ],
-            // Crash & Fast Games
+            [
+                'provider_code' => 'HACKSAW',
+                'game_code' => 'le-bandit',
+                'name' => 'Le Bandit',
+                'slug' => 'le-bandit',
+                'banner_url' => 'https://www-live.hacksawgaming.com/casino_thumbnails/1309.jpg',
+                'category' => 'slots',
+                'rtp' => 96.34,
+                'is_popular' => true,
+                'is_featured' => true,
+            ],
+            // Crash & Fast Games (Spribe)
             [
                 'provider_code' => 'SPRIBE',
                 'game_code' => 'aviator',
                 'name' => 'Aviator',
                 'slug' => 'aviator',
-                'banner_url' => 'https://images.unsplash.com/photo-1540959733332-eab4deabeeaf?w=600&auto=format&fit=crop&q=80',
+                'banner_url' => 'https://spribe.co/assets/games/aviator/thumbnail.png',
                 'category' => 'crash',
                 'rtp' => 97.00,
                 'is_popular' => true,
@@ -160,9 +228,9 @@ class DatabaseSeeder extends Seeder
             [
                 'provider_code' => 'SPRIBE',
                 'game_code' => 'mines',
-                'name' => 'Mines Cyber',
-                'slug' => 'mines-cyber',
-                'banner_url' => 'https://images.unsplash.com/photo-1618005182384-a83a8bd57fbe?w=600&auto=format&fit=crop&q=80',
+                'name' => 'Mines',
+                'slug' => 'mines',
+                'banner_url' => 'https://spribe.co/assets/games/mines/thumbnail.png',
                 'category' => 'crash',
                 'rtp' => 97.00,
                 'is_popular' => true,
@@ -171,9 +239,9 @@ class DatabaseSeeder extends Seeder
             [
                 'provider_code' => 'SPRIBE',
                 'game_code' => 'plinko',
-                'name' => 'Plinko Neon',
-                'slug' => 'plinko-neon',
-                'banner_url' => 'https://images.unsplash.com/photo-1550745165-9bc0b252726f?w=600&auto=format&fit=crop&q=80',
+                'name' => 'Plinko',
+                'slug' => 'plinko',
+                'banner_url' => 'https://spribe.co/assets/games/plinko/thumbnail.png',
                 'category' => 'crash',
                 'rtp' => 97.00,
                 'is_popular' => true,
@@ -181,96 +249,73 @@ class DatabaseSeeder extends Seeder
             ],
             // Live Casino Games
             [
-                'provider_code' => 'EVOLUTION',
-                'game_code' => 'live-blackjack-vip',
+                'provider_code' => 'PP_LIVE_PRO',
+                'game_code' => '101',
                 'name' => 'VIP Blackjack Neon',
                 'slug' => 'vip-blackjack-neon',
-                'banner_url' => 'https://images.unsplash.com/photo-1511193311914-0346f16efe90?w=600&auto=format&fit=crop&q=80',
+                'banner_url' => 'https://assets.bd34fgabh.com/apps/game-assets/101/101_800x600_NB.avif',
                 'category' => 'live',
                 'rtp' => 99.28,
                 'is_popular' => true,
                 'is_featured' => true,
             ],
             [
-                'provider_code' => 'EVOLUTION',
-                'game_code' => 'lightning-roulette',
-                'name' => 'Lightning Roulette',
-                'slug' => 'lightning-roulette',
-                'banner_url' => 'https://images.unsplash.com/photo-1596838132731-3301c3fd4317?w=600&auto=format&fit=crop&q=80',
+                'provider_code' => 'PP_LIVE_PRO',
+                'game_code' => '201',
+                'name' => 'Mega Roulette Live',
+                'slug' => 'mega-roulette-live',
+                'banner_url' => 'https://assets.bd34fgabh.com/apps/game-assets/201/201_800x600_NB.avif',
                 'category' => 'live',
                 'rtp' => 97.30,
                 'is_popular' => true,
                 'is_featured' => true,
             ],
             [
-                'provider_code' => 'EVOLUTION',
-                'game_code' => 'speed-baccarat-a',
+                'provider_code' => 'PP_LIVE_PRO',
+                'game_code' => '204',
                 'name' => 'Speed Baccarat',
                 'slug' => 'speed-baccarat',
-                'banner_url' => 'https://images.unsplash.com/photo-1518709268805-4e9042af9f23?w=600&auto=format&fit=crop&q=80',
+                'banner_url' => 'https://assets.bd34fgabh.com/apps/game-assets/204/204_800x600_NB.avif',
                 'category' => 'live',
                 'rtp' => 98.94,
                 'is_popular' => true,
                 'is_featured' => false,
             ],
             [
-                'provider_code' => 'EVOLUTION',
-                'game_code' => 'crazy-time',
-                'name' => 'Crazy Time Deluxe',
-                'slug' => 'crazy-time-deluxe',
-                'banner_url' => 'https://images.unsplash.com/photo-1606167668584-78701c57f13d?w=600&auto=format&fit=crop&q=80',
+                'provider_code' => 'PP_LIVE_PRO',
+                'game_code' => '501',
+                'name' => 'Sweet Bonanza CandyLand Live',
+                'slug' => 'sweet-bonanza-candyland',
+                'banner_url' => 'https://assets.bd34fgabh.com/apps/game-assets/501/501_800x600_NB.avif',
                 'category' => 'live',
-                'rtp' => 96.08,
+                'rtp' => 96.48,
                 'is_popular' => true,
-                'is_featured' => false,
-            ],
-            // Sports / Esports
-            [
-                'provider_code' => 'NETENT',
-                'game_code' => 'champions-cup',
-                'name' => 'Football Champions Cup',
-                'slug' => 'football-champions-cup',
-                'banner_url' => 'https://images.unsplash.com/photo-1508098682722-e99c43a406b2?w=600&auto=format&fit=crop&q=80',
-                'category' => 'sports',
-                'rtp' => 96.82,
-                'is_popular' => true,
-                'is_featured' => false,
-            ],
-            [
-                'provider_code' => 'NOLIMIT',
-                'game_code' => 'cyber-esports-battle',
-                'name' => 'Cyber Esports Arena',
-                'slug' => 'cyber-esports-arena',
-                'banner_url' => 'https://images.unsplash.com/photo-1542751371-adc38448a05e?w=600&auto=format&fit=crop&q=80',
-                'category' => 'sports',
-                'rtp' => 96.15,
-                'is_popular' => true,
-                'is_featured' => false,
+                'is_featured' => true,
             ],
         ];
 
         foreach ($gamesData as $g) {
             Game::updateOrCreate(
-                ['provider_code' => $g['provider_code'], 'game_code' => $g['game_code']],
+                ['slug' => $g['slug']],
                 $g
             );
         }
 
-        // 4. Seed Live Community Wins (Matching mockup table)
+        // 3. Seed Live Community Wins (Matching mockup table)
         $wins = [
             ['user_name' => 'WildPapa442', 'game_name' => 'Gates of Olympus', 'bet_amount' => 10.00, 'multiplier' => 50.0, 'win_amount' => 500.00, 'game_image' => 'https://assets.bd34fgabh.com/apps/game-assets/vs20olympgate/vs20olympgate_800x600_NB.avif'],
             ['user_name' => 'RichPiano', 'game_name' => 'Sweet Bonanza', 'bet_amount' => 2.00, 'multiplier' => 120.0, 'win_amount' => 240.00, 'game_image' => 'https://assets.bd34fgabh.com/apps/game-assets/vs20sweetbonz/vs20sweetbonz_800x600_NB.avif'],
-            ['user_name' => 'Arendsa', 'game_name' => 'Starburst', 'bet_amount' => 5.00, 'multiplier' => 10.0, 'win_amount' => 50.00, 'game_image' => 'https://images.unsplash.com/photo-1606167668584-78701c57f13d?w=600&auto=format&fit=crop&q=80'],
+            ['user_name' => 'Arendsa', 'game_name' => 'Big Bass Splash', 'bet_amount' => 5.00, 'multiplier' => 10.0, 'win_amount' => 50.00, 'game_image' => 'https://assets.bd34fgabh.com/apps/game-assets/vs20bigbass/vs20bigbass_800x600_NB.avif'],
             ['user_name' => 'Killer729', 'game_name' => 'Fortune Tiger', 'bet_amount' => 20.00, 'multiplier' => 25.0, 'win_amount' => 500.00, 'game_image' => 'https://assets.bd34fgabh.com/img/pgsoft/fortune-tiger.jpg'],
             ['user_name' => 'Lillesss', 'game_name' => 'Wanted Dead or a Wild', 'bet_amount' => 4.00, 'multiplier' => 320.0, 'win_amount' => 1280.00, 'game_image' => 'https://www-live.hacksawgaming.com/casino_thumbnails/1069.jpg'],
-            ['user_name' => 'CyberDragon', 'game_name' => 'Aviator', 'bet_amount' => 50.00, 'multiplier' => 14.5, 'win_amount' => 725.00, 'game_image' => 'https://images.unsplash.com/photo-1540959733332-eab4deabeeaf?w=600&auto=format&fit=crop&q=80'],
+            ['user_name' => 'CyberDragon', 'game_name' => 'Aviator', 'bet_amount' => 50.00, 'multiplier' => 14.5, 'win_amount' => 725.00, 'game_image' => 'https://spribe.co/assets/games/aviator/thumbnail.png'],
         ];
 
         foreach ($wins as $win) {
             LiveCommunityWin::create($win);
         }
 
-        // 5. Seed Tournaments
+        // 4. Seed Tournaments
         Tournament::updateOrCreate(
             ['title' => 'GRAND TOURNAMENT CYBER CRUSH'],
             [
@@ -279,7 +324,7 @@ class DatabaseSeeder extends Seeder
                 'starts_at' => Carbon::now()->subDays(2),
                 'ends_at' => Carbon::now()->addDays(16)->addHours(21)->addMinutes(31)->addSeconds(19),
                 'status' => 'active',
-                'image_url' => 'https://images.unsplash.com/photo-1542751371-adc38448a05e?w=800&auto=format&fit=crop&q=80',
+                'image_url' => 'https://assets.bd34fgabh.com/apps/game-assets/vs20olympgate/vs20olympgate_800x600_NB.avif',
             ]
         );
 

@@ -1,17 +1,27 @@
 import React, { useState } from 'react';
 import { Link, usePage } from '@inertiajs/react';
-import { Play, Flame, Heart, Gamepad2 } from 'lucide-react';
+import { Play, Flame, Heart } from 'lucide-react';
 
-const legacyPosters = {
-    vs20sweetbonz: '/images/games/sweet-bonanza.avif',
-    vs40buffking: '/images/games/buffalo-king.avif',
-    vs20sugarush: '/images/games/sugar-rush.avif',
+const getFallbackBanner = (game) => {
+    const code = game.game_code || game.slug;
+    const provider = (game.provider_code || '').toUpperCase();
+    if (provider.includes('PGSOFT')) {
+        return `https://assets.bd34fgabh.com/img/pgsoft/${code}.jpg`;
+    }
+    if (provider.includes('HACKSAW')) {
+        return `https://www-live.hacksawgaming.com/casino_thumbnails/${code}.jpg`;
+    }
+    if (provider.includes('SPRIBE')) {
+        return `https://spribe.co/assets/games/${code}/thumbnail.png`;
+    }
+    return `https://assets.bd34fgabh.com/apps/game-assets/${code}/${code}_800x600_NB.avif`;
 };
 
 export default function GameCard({ game }) {
     const { auth } = usePage().props;
     const [favorite, setFavorite] = useState(() => { try { return JSON.parse(localStorage.getItem('neonwin-favorites') || '[]').includes(game.id); } catch { return false; } });
-    const [imageError, setImageError] = useState(false);
+    const [imageSrc, setImageSrc] = useState(() => game.banner_url || getFallbackBanner(game));
+
     const toggleFavorite = () => {
         const nextState = !favorite;
         setFavorite(nextState);
@@ -32,10 +42,23 @@ export default function GameCard({ game }) {
         }
     };
 
+    const handleImageError = () => {
+        const fallback = getFallbackBanner(game);
+        if (imageSrc !== fallback) {
+            setImageSrc(fallback);
+        }
+    };
+
     const href = `/game/${game.slug || game.game_code}`;
     return <article className="nw-game-card">
         <div className="nw-game-poster">
-            {game.banner_url && !imageError ? <img src={legacyPosters[game.game_code] || game.banner_url} onError={() => setImageError(true)} alt={game.name} loading="lazy" /> : <div className={`nw-game-fallback nw-fallback-${game.category || 'slots'}`}><Gamepad2 size={42} /><strong>{game.name}</strong><span>{game.provider_code}</span></div>}
+            <img 
+                src={imageSrc} 
+                onError={handleImageError} 
+                alt={game.name} 
+                loading="lazy" 
+                className="w-full h-full object-cover"
+            />
             <div className="nw-game-badges">{game.category === 'live' ? <span className="nw-badge-live"><i /> LIVE</span> : game.is_popular ? <span className="nw-badge-hot"><Flame size={10} fill="currentColor" /> HOT</span> : null}</div>
             <button className={`nw-favorite ${favorite ? 'is-active' : ''}`} aria-label={`${favorite ? 'Remove' : 'Add'} ${game.name} ${favorite ? 'from' : 'to'} favorites`} aria-pressed={favorite} onClick={toggleFavorite}><Heart size={14} fill={favorite ? 'currentColor' : 'none'} /></button>
             <div className="nw-game-overlay">
