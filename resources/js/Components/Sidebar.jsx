@@ -6,6 +6,35 @@ export function Brand() {
     return <span className="nw-brand"><span className="nw-brand-mark"><Zap size={24} fill="currentColor" /></span><span>neon<span>win</span><small>PLAY IN YOUR ELEMENT</small></span></span>;
 }
 
+function WalletBalanceDisplay({ balance = 0 }) {
+    const num = Number(balance || 0);
+    const formatted = num.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+    
+    // Choose dynamic text size based on character length so it never overflows
+    let sizeClass = 'text-[22px]';
+    if (formatted.length > 15) {
+        sizeClass = 'text-[13px]';
+    } else if (formatted.length > 12) {
+        sizeClass = 'text-[15px]';
+    } else if (formatted.length > 9) {
+        sizeClass = 'text-[18px]';
+    }
+
+    return (
+        <div className="flex items-baseline justify-between gap-1.5 my-2 min-w-0 w-full overflow-hidden">
+            <span 
+                className={`font-heading font-bold text-white tracking-tight tabular-nums truncate ${sizeClass}`}
+                title={`${formatted} SC`}
+            >
+                {formatted}
+            </span>
+            <span className="text-xs font-bold text-yellow-400 shrink-0 font-sans tracking-wide">
+                SC
+            </span>
+        </div>
+    );
+}
+
 export default function Sidebar({ isOpen, setIsOpen, onOpenDeposit, onOpenVip, onOpenCrates, onOpenVault, onOpenTip }) {
     const { auth, filters = {} } = usePage().props;
     const category = filters.category || 'all';
@@ -18,7 +47,9 @@ export default function Sidebar({ isOpen, setIsOpen, onOpenDeposit, onOpenVip, o
             <div className="nw-sidebar-brand"><Link href="/" aria-label="Neonwin home"><Brand /></Link><button className="nw-icon-button lg:hidden" aria-label="Close navigation" onClick={() => setIsOpen(false)}><X size={18} /></button></div>
             <div className="nw-wallet">
                 <span className="nw-eyebrow">YOUR PLAY WALLET <span className="nw-currency">SC</span></span>
-                <Link href={auth?.user ? "/profile" : "#"} onClick={() => setIsOpen(false)} className="nw-wallet-balance block hover:opacity-80 transition">{Number(auth?.user?.game_balance || 0).toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}<small>SC</small></Link>
+                <Link href={auth?.user ? "/profile" : "#"} onClick={() => setIsOpen(false)} className="block hover:opacity-85 transition min-w-0 w-full">
+                    <WalletBalanceDisplay balance={auth?.user?.game_balance} />
+                </Link>
                 <button onClick={onOpenDeposit} className="nw-button nw-button-purple w-full"><Gift size={15} /> Get Sweeps Coins</button>
             </div>
             <nav className="nw-navigation">
