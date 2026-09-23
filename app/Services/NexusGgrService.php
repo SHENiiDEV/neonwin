@@ -106,15 +106,13 @@ class NexusGgrService
     }
 
     /**
-     * 2. Fetch Game List for a specific provider (supports game_list & game_list_v2)
+     * 2. Fetch Game List for a specific provider (supports game_list with working banner URLs)
      */
     public function fetchGameList(string $providerCode): array
     {
-        $v2Providers = ['PRAGMATIC', 'PGSOFT', 'REELKINGDOM', 'FATPANDA', 'HABANERO', 'CQ9'];
-        $method = in_array(strtoupper($providerCode), $v2Providers) ? 'game_list_v2' : 'game_list';
-
+        // Always try standard game_list first as it includes direct working CDN banner URLs
         $response = $this->post([
-            'method' => $method,
+            'method' => 'game_list',
             'provider_code' => strtoupper($providerCode),
         ]);
 
@@ -133,19 +131,18 @@ class NexusGgrService
             }
         }
 
-        // Try v1 fallback if v2 returned empty
-        if ($method === 'game_list_v2') {
-            $fallbackResp = $this->post([
-                'method' => 'game_list',
-                'provider_code' => strtoupper($providerCode),
-            ]);
-            if ($fallbackResp) {
-                if (isset($fallbackResp['games']) && is_array($fallbackResp['games'])) {
-                    return $fallbackResp['games'];
-                }
-                if (isset($fallbackResp['data']) && is_array($fallbackResp['data'])) {
-                    return $fallbackResp['data'];
-                }
+        // Secondary fallback to game_list_v2 if provider requires v2
+        $v2Resp = $this->post([
+            'method' => 'game_list_v2',
+            'provider_code' => strtoupper($providerCode),
+        ]);
+
+        if ($v2Resp) {
+            if (isset($v2Resp['games']) && is_array($v2Resp['games'])) {
+                return $v2Resp['games'];
+            }
+            if (isset($v2Resp['data']) && is_array($v2Resp['data'])) {
+                return isset($v2Resp['data']['games']) && is_array($v2Resp['data']['games']) ? $v2Resp['data']['games'] : $v2Resp['data'];
             }
         }
 

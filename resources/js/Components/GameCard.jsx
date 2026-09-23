@@ -20,7 +20,8 @@ const getFallbackBanner = (game) => {
 export default function GameCard({ game }) {
     const { auth } = usePage().props;
     const [favorite, setFavorite] = useState(() => { try { return JSON.parse(localStorage.getItem('neonwin-favorites') || '[]').includes(game.id); } catch { return false; } });
-    const [imageSrc, setImageSrc] = useState(() => game.banner_url || getFallbackBanner(game));
+    const [imageError, setImageError] = useState(false);
+    const imageSrc = game.banner_url || getFallbackBanner(game);
 
     const toggleFavorite = () => {
         const nextState = !favorite;
@@ -42,23 +43,24 @@ export default function GameCard({ game }) {
         }
     };
 
-    const handleImageError = () => {
-        const fallback = getFallbackBanner(game);
-        if (imageSrc !== fallback) {
-            setImageSrc(fallback);
-        }
-    };
-
     const href = `/game/${game.slug || game.game_code}`;
     return <article className="nw-game-card">
         <div className="nw-game-poster">
-            <img 
-                src={imageSrc} 
-                onError={handleImageError} 
-                alt={game.name} 
-                loading="lazy" 
-                className="w-full h-full object-cover"
-            />
+            {!imageError && imageSrc ? (
+                <img 
+                    src={imageSrc} 
+                    onError={() => setImageError(true)} 
+                    alt={game.name} 
+                    loading="lazy" 
+                    className="w-full h-full object-cover"
+                />
+            ) : (
+                <div className="w-full h-full flex flex-col items-center justify-center p-3 text-center bg-gradient-to-br from-purple-900/40 via-gray-900 to-black border border-purple-500/20">
+                    <span className="text-2xl mb-1">🎰</span>
+                    <span className="text-xs font-bold text-white line-clamp-2">{game.name.replaceAll('_', ' ')}</span>
+                    <span className="text-[10px] text-purple-400 mt-1 uppercase tracking-wider">{game.provider_code.replaceAll('_', ' ')}</span>
+                </div>
+            )}
             <div className="nw-game-badges">{game.category === 'live' ? <span className="nw-badge-live"><i /> LIVE</span> : game.is_popular ? <span className="nw-badge-hot"><Flame size={10} fill="currentColor" /> HOT</span> : null}</div>
             <button className={`nw-favorite ${favorite ? 'is-active' : ''}`} aria-label={`${favorite ? 'Remove' : 'Add'} ${game.name} ${favorite ? 'from' : 'to'} favorites`} aria-pressed={favorite} onClick={toggleFavorite}><Heart size={14} fill={favorite ? 'currentColor' : 'none'} /></button>
             <div className="nw-game-overlay">
