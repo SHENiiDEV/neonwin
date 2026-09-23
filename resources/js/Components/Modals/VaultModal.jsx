@@ -151,22 +151,22 @@ export default function VaultModal({ isOpen, onClose }) {
                 {activeTab === 'deposit' && (
                     <form onSubmit={handleDeposit} className="space-y-4">
                         <div>
-                            <label className="block text-xs font-bold text-gray-300 mb-1.5">Amount to Lock (Coins)</label>
+                            <label className="block text-xs font-bold text-gray-300 mb-1.5">Amount to Lock (SC)</label>
                             <div className="relative">
                                 <input
                                     type="number"
-                                    step="10000"
-                                    min="10000"
+                                    step="any"
+                                    min="0.01"
                                     max={user?.game_balance || 0}
                                     value={amount}
                                     onChange={e => setAmount(e.target.value)}
-                                    placeholder="e.g. 500,000"
+                                    placeholder="e.g. 50.00"
                                     required
                                     className="w-full bg-[#1b1428] border border-[#3c2a4f] rounded-xl px-4 py-3 text-xs text-white focus:outline-none focus:border-cyan-500 font-mono"
                                 />
                                 <button
                                     type="button"
-                                    onClick={() => setAmount(Math.floor(user?.game_balance || 0))}
+                                    onClick={() => setAmount(Number(user?.game_balance || 0).toFixed(2))}
                                     className="absolute right-2.5 top-1/2 -translate-y-1/2 px-2.5 py-1 rounded-lg bg-white/10 hover:bg-white/20 text-[10px] font-bold text-yellow-300"
                                 >
                                     MAX
@@ -188,28 +188,29 @@ export default function VaultModal({ isOpen, onClose }) {
                 {activeTab === 'withdraw' && (
                     <form onSubmit={handleWithdraw} className="space-y-4">
                         <div>
-                            <label className="block text-xs font-bold text-gray-300 mb-1.5">Amount to Release (Coins)</label>
+                            <label className="block text-xs font-bold text-gray-300 mb-1.5">Amount to Release (SC)</label>
                             <div className="relative">
                                 <input
                                     type="number"
-                                    step="10000"
-                                    min="10000"
+                                    step="any"
+                                    min="0.01"
                                     max={user?.vault_balance || 0}
                                     value={amount}
                                     onChange={e => setAmount(e.target.value)}
-                                    placeholder="e.g. 250,000"
+                                    placeholder="e.g. 25.00"
                                     required
                                     className="w-full bg-[#1b1428] border border-[#3c2a4f] rounded-xl px-4 py-3 text-xs text-white focus:outline-none focus:border-purple-500 font-mono"
                                 />
                                 <button
                                     type="button"
-                                    onClick={() => setAmount(Math.floor(user?.vault_balance || 0))}
+                                    onClick={() => setAmount(Number(user?.vault_balance || 0).toFixed(2))}
                                     className="absolute right-2.5 top-1/2 -translate-y-1/2 px-2.5 py-1 rounded-lg bg-white/10 hover:bg-white/20 text-[10px] font-bold text-cyan-300"
                                 >
                                     MAX
                                 </button>
                             </div>
                         </div>
+
 
                         {user?.has_vault_pin && (
                             <div>

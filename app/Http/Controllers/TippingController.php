@@ -14,7 +14,7 @@ class TippingController extends Controller
     {
         $validated = $request->validate([
             'recipient_code' => ['required', 'string'],
-            'amount' => ['required', 'numeric', 'min:100000', 'max:500000000'],
+            'amount' => ['required', 'numeric', 'min:0.10', 'max:500000000'],
             'note' => ['nullable', 'string', 'max:150'],
         ]);
 
@@ -57,8 +57,8 @@ class TippingController extends Controller
             'note' => $validated['note'] ?? null,
         ]);
 
-        $formattedNet = number_format($netAmount);
-        $formattedFee = number_format($fee);
+        $formattedNet = number_format($netAmount, 2);
+        $formattedFee = number_format($fee, 2);
 
         return response()->json([
             'status' => 'success',
@@ -66,7 +66,8 @@ class TippingController extends Controller
             'fee' => $fee,
             'net_delivered' => $netAmount,
             'recipient_name' => $recipient->name,
-            'message' => "Successfully sent {$formattedNet} Coins to {$recipient->name} (fee: {$formattedFee} Coins).",
+            'message' => "Successfully sent {$formattedNet} SC to {$recipient->name} (fee: {$formattedFee} SC).",
         ]);
     }
 }
+

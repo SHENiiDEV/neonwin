@@ -12,7 +12,7 @@ class VaultController extends Controller
     public function deposit(Request $request): JsonResponse
     {
         $validated = $request->validate([
-            'amount' => ['required', 'numeric', 'min:10000'],
+            'amount' => ['required', 'numeric', 'min:0.01'],
         ]);
 
         $user = Auth::user();
@@ -28,20 +28,20 @@ class VaultController extends Controller
         $user->decrement('game_balance', $amount);
         $user->increment('vault_balance', $amount);
 
-        $formatted = number_format($amount);
+        $formatted = number_format($amount, 2);
 
         return response()->json([
             'status' => 'success',
             'game_balance' => (float) $user->game_balance,
             'vault_balance' => (float) $user->vault_balance,
-            'message' => "Successfully locked {$formatted} Coins inside your Cyber Vault.",
+            'message' => "Successfully locked {$formatted} SC inside your Cyber Vault.",
         ]);
     }
 
     public function withdraw(Request $request): JsonResponse
     {
         $validated = $request->validate([
-            'amount' => ['required', 'numeric', 'min:10000'],
+            'amount' => ['required', 'numeric', 'min:0.01'],
             'pin' => ['nullable', 'string', 'size:4'],
         ]);
 
@@ -63,15 +63,16 @@ class VaultController extends Controller
         $user->decrement('vault_balance', $amount);
         $user->increment('game_balance', $amount);
 
-        $formatted = number_format($amount);
+        $formatted = number_format($amount, 2);
 
         return response()->json([
             'status' => 'success',
             'game_balance' => (float) $user->game_balance,
             'vault_balance' => (float) $user->vault_balance,
-            'message' => "Successfully unlocked {$formatted} Coins from your Vault to your active wallet.",
+            'message' => "Successfully unlocked {$formatted} SC from your Vault to your active wallet.",
         ]);
     }
+
 
     public function setPin(Request $request): JsonResponse
     {

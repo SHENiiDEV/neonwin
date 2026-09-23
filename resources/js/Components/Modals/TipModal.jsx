@@ -58,7 +58,7 @@ export default function TipModal({ isOpen, onClose }) {
                     </div>
                     <div>
                         <h2 className="font-heading font-black text-xl sm:text-2xl text-white">Player-to-Player Tip</h2>
-                        <p className="text-xs text-gray-400">Instantly transfer Coins to a friend (3% platform fee)</p>
+                        <p className="text-xs text-gray-400">Instantly transfer SC to a friend (3% platform fee)</p>
                     </div>
                 </div>
 
@@ -90,17 +90,17 @@ export default function TipModal({ isOpen, onClose }) {
 
                     <div>
                         <div className="flex items-center justify-between mb-1.5">
-                            <label className="text-xs font-bold text-gray-300">Amount to Send (Coins)</label>
-                            <span className="text-[10px] text-gray-400">Available: {Math.floor(Number(user?.game_balance || 0)).toLocaleString()} Coins</span>
+                            <label className="text-xs font-bold text-gray-300">Amount to Send (SC)</label>
+                            <span className="text-[10px] text-gray-400">Available: {Number(user?.game_balance || 0).toFixed(2)} SC</span>
                         </div>
                         <input
                             type="number"
-                            step="10000"
-                            min="100000"
+                            step="any"
+                            min="0.10"
                             max={user?.game_balance || 0}
                             value={amount}
                             onChange={e => setAmount(e.target.value)}
-                            placeholder="e.g. 500,000"
+                            placeholder="e.g. 10.00"
                             required
                             className="w-full bg-[#1b1428] border border-[#3c2a4f] rounded-xl px-4 py-3 text-xs text-white focus:outline-none focus:border-pink-500 font-mono"
                         />
@@ -123,26 +123,27 @@ export default function TipModal({ isOpen, onClose }) {
                         <div className="p-3.5 rounded-2xl bg-[#1a1329] border border-[#3b294d] text-xs space-y-1.5 font-mono">
                             <div className="flex justify-between text-gray-400">
                                 <span>Tip Amount:</span>
-                                <span className="text-white">{Math.floor(numAmount).toLocaleString()} Coins</span>
+                                <span className="text-white">{numAmount.toFixed(2)} SC</span>
                             </div>
                             <div className="flex justify-between text-gray-400">
                                 <span className="flex items-center gap-1">Commission (3%):</span>
-                                <span className="text-pink-400">-{Math.floor(fee).toLocaleString()} Coins</span>
+                                <span className="text-pink-400">-{fee.toFixed(2)} SC</span>
                             </div>
                             <div className="border-t border-white/5 pt-1.5 flex justify-between font-bold text-emerald-400 text-sm">
                                 <span>Delivered to Player:</span>
-                                <span>{Math.floor(netDelivered).toLocaleString()} Coins</span>
+                                <span>{netDelivered.toFixed(2)} SC</span>
                             </div>
                         </div>
                     )}
 
                     <button
                         type="submit"
-                        disabled={processing || numAmount < 100000 || !recipientCode}
+                        disabled={processing || numAmount < 0.10 || !recipientCode}
                         className="w-full py-3 rounded-xl bg-gradient-to-r from-pink-500 to-purple-600 hover:from-pink-400 hover:to-purple-500 text-white font-heading font-black text-xs uppercase tracking-wider shadow-lg transition flex items-center justify-center gap-2 disabled:opacity-50"
                     >
                         {processing ? <LoaderCircle size={16} className="animate-spin" /> : <>Send Tip Now <Send size={15} /></>}
                     </button>
+
                 </form>
             </section>
         </div>
