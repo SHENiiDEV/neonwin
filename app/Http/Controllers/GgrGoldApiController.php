@@ -185,9 +185,9 @@ class GgrGoldApiController extends Controller
             $balanceAfter = $currentBalance - $coinsToDebit + $coinsToCredit;
             $user->game_balance = $balanceAfter;
 
-            // Award VIP XP points for wager in Social Casino
+            // Award VIP XP points for wager in Social Casino (100,000 Coins = 1 SC = 10 VIP XP)
             if ($coinsToDebit > 0) {
-                $user->awardVipXp($coinsToDebit / $rate);
+                $user->awardVipXp($coinsToDebit / 100000);
             }
 
             $user->save();

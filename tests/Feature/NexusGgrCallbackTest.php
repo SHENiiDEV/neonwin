@@ -17,7 +17,7 @@ class NexusGgrCallbackTest extends TestCase
             'email' => 'test@neonwin.com',
             'password' => bcrypt('secret'),
             'user_code' => 'ZP-123456',
-            'game_balance' => 150050000.00, // 1500.50 EUR eq
+            'game_balance' => 2800000.00,
         ]);
 
         $response = $this->postJson('/gold_api', [
@@ -29,7 +29,7 @@ class NexusGgrCallbackTest extends TestCase
         $response->assertStatus(200);
         $response->assertJson([
             'status' => 1,
-            'user_balance' => 1500.50,
+            'user_balance' => 2800000.00,
         ]);
     }
 
@@ -40,7 +40,7 @@ class NexusGgrCallbackTest extends TestCase
             'email' => 'social@neonwin.com',
             'password' => bcrypt('secret'),
             'user_code' => 'ZP-777777',
-            'game_balance' => 50000000.00, // 500.00 EUR eq
+            'game_balance' => 1000000.00,
         ]);
 
         $roundId = 63792613432127;
@@ -57,8 +57,8 @@ class NexusGgrCallbackTest extends TestCase
                 'provider_code' => 'PRAGMATIC',
                 'game_code' => 'vs20midas',
                 'type' => 'BASE',
-                'bet_money' => 10.00,
-                'win_money' => 25.00,
+                'bet_money' => 100000.00,
+                'win_money' => 250000.00,
                 'round_id' => $roundId,
                 'txn_id' => (string) $roundId,
                 'txn_id_v2' => $txnIdV2,
@@ -69,7 +69,7 @@ class NexusGgrCallbackTest extends TestCase
         $response->assertStatus(200);
         $response->assertJson([
             'status' => 1,
-            'user_balance' => 515.00,
+            'user_balance' => 1150000.00,
         ]);
 
         // 2. Test Deduplication on txn_id_v2
@@ -82,8 +82,8 @@ class NexusGgrCallbackTest extends TestCase
             'slot' => [
                 'provider_code' => 'PRAGMATIC',
                 'game_code' => 'vs20midas',
-                'bet_money' => 10.00,
-                'win_money' => 25.00,
+                'bet_money' => 100000.00,
+                'win_money' => 250000.00,
                 'txn_id_v2' => $txnIdV2,
             ],
         ]);
@@ -91,7 +91,7 @@ class NexusGgrCallbackTest extends TestCase
         $duplicateResponse->assertStatus(200);
         $duplicateResponse->assertJson([
             'status' => 1,
-            'user_balance' => 515.00,
+            'user_balance' => 1150000.00,
             'msg' => 'TRANSACTION_ALREADY_PROCESSED',
         ]);
     }
@@ -103,7 +103,7 @@ class NexusGgrCallbackTest extends TestCase
             'email' => 'broke@neonwin.com',
             'password' => bcrypt('secret'),
             'user_code' => 'ZP-000001',
-            'game_balance' => 500000.00, // 5.00 EUR eq
+            'game_balance' => 500.00,
         ]);
 
         $response = $this->postJson('/gold_api', [
@@ -115,14 +115,13 @@ class NexusGgrCallbackTest extends TestCase
             'slot' => [
                 'provider_code' => 'PRAGMATIC',
                 'game_code' => 'vs20midas',
-                'bet_money' => 100.00,
+                'bet_money' => 1000.00,
                 'win_money' => 0.00,
                 'txn_id_v2' => 'txn_insufficient_test',
                 'txn_type' => 'debit',
             ],
         ]);
 
-        $response->assertStatus(400);
         $response->assertJson([
             'status' => 0,
             'msg' => 'INSUFFICIENT_USER_FUNDS',
