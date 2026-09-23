@@ -113,7 +113,7 @@ class AuthController extends Controller
             'vault_balance' => 0.00,
             'vip_xp' => 0,
             'vip_level' => 1,
-            'currency' => 'COINS',
+            'currency' => 'SC',
             'avatar' => 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=150&auto=format&fit=crop&q=80',
         ]);
 
@@ -126,13 +126,14 @@ class AuthController extends Controller
             'status' => 'pending',
         ]);
 
-        // Reward Referrer if present (500,000 Coins / 5.00 EUR eq)
+        // Reward Referrer if present (0.50 SC reward)
         if ($referrer) {
-            $referrer->increment('game_balance', 500000.00);
+            $referrerBonus = 0.50;
+            $referrer->increment('game_balance', $referrerBonus);
             ReferralEarning::create([
                 'referrer_id' => $referrer->id,
                 'referred_user_id' => $user->id,
-                'reward_sc' => 500000.00,
+                'reward_sc' => $referrerBonus,
                 'type' => 'signup_bonus',
             ]);
         }

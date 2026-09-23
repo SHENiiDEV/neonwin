@@ -143,7 +143,7 @@
                 </div>
 
                 <p>
-                    Claim your daily <strong>100,000 Coins</strong> login reward, spin the loot crate roulette, and climb the leaderboards today!
+                    Claim your daily <strong>0.02 SC</strong> login reward, spin the loot crate roulette, and climb the leaderboards today!
                 </p>
 
                 <div class="btn-wrap">

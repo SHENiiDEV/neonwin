@@ -101,7 +101,7 @@ export default function Terms() {
                         </p>
                         <ul className="list-disc pl-5 space-y-1 text-gray-400">
                             <li><strong className="text-white">No Purchase Necessary:</strong> No purchase of any kind is required to open an account, access the lobby, or obtain Sweeps Coins.</li>
-                            <li><strong className="text-white">Free Acquisition:</strong> Free Sweeps Coins are made available through daily login claims (50 SC/day), social promotions, VIP rank-up gifts, and postal mail-in requests.</li>
+                            <li><strong className="text-white">Free Acquisition:</strong> Free Sweeps Coins are made available through daily login claims (0.02 SC/day), social promotions, VIP rank-up gifts, and postal mail-in requests.</li>
                             <li><strong className="text-white">Entertainment Value:</strong> Sweeps Coins have no direct real-world commercial value and cannot be directly bought or traded between players.</li>
                         </ul>
                     </div>

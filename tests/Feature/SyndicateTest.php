@@ -45,7 +45,7 @@ class SyndicateTest extends TestCase
     {
         $referrer = User::factory()->create([
             'referral_code' => 'NW-REF-HERO',
-            'game_balance' => 1000000.00,
+            'game_balance' => 10.00,
         ]);
 
         $response = $this->post('/register', [
@@ -67,7 +67,7 @@ class SyndicateTest extends TestCase
         $response->assertSessionHasNoErrors();
 
         $referrer->refresh();
-        $this->assertEquals(1500000.00, $referrer->game_balance);
+        $this->assertEquals(10.50, $referrer->game_balance);
 
         $newPlayer = User::where('email', 'recruit@example.com')->first();
         $this->assertNotNull($newPlayer);

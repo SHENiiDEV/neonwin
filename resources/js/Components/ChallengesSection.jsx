@@ -56,13 +56,13 @@ export default function ChallengesSection() {
                                     <h3 className="font-heading font-black text-base text-white mt-0.5">
                                         {c.title}
                                     </h3>
-                                    <span className="text-xs text-gray-400">{c.game_name} • Min Bet: {Math.floor(Number(c.min_bet)).toLocaleString()} Coins</span>
+                                    <span className="text-xs text-gray-400">{c.game_name} • Min Bet: {Number(c.min_bet).toFixed(2)} SC</span>
                                 </div>
 
                                 <div className="p-2.5 rounded-xl bg-yellow-400/10 border border-yellow-400/30 text-center flex-shrink-0">
                                     <span className="text-[9px] font-bold text-yellow-400 uppercase block">Prize Pool</span>
                                     <strong className="font-heading font-black text-base text-yellow-300">
-                                        {Math.floor(Number(c.prize_sc)).toLocaleString()} <small className="text-[10px]">Coins</small>
+                                        {Number(c.prize_sc).toFixed(2)} <small className="text-[10px]">SC</small>
                                     </strong>
                                 </div>
                             </div>

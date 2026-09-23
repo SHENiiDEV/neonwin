@@ -16,8 +16,8 @@ class ChallengeController extends Controller
                 'game_code' => 'vs20sugarush',
                 'game_name' => 'Sugar Rush',
                 'target_multiplier' => 500.00,
-                'min_bet' => 50000.00,
-                'prize_sc' => 25000000.00,
+                'min_bet' => 0.20,
+                'prize_sc' => 250.00,
                 'status' => 'active',
                 'expires_at' => now()->addDays(7),
             ]);
@@ -27,8 +27,8 @@ class ChallengeController extends Controller
                 'game_code' => 'vs20sweetbonz',
                 'game_name' => 'Sweet Bonanza',
                 'target_multiplier' => 250.00,
-                'min_bet' => 40000.00,
-                'prize_sc' => 15000000.00,
+                'min_bet' => 0.20,
+                'prize_sc' => 150.00,
                 'status' => 'active',
                 'expires_at' => now()->addDays(5),
             ]);
@@ -38,8 +38,8 @@ class ChallengeController extends Controller
                 'game_code' => 'vs40buffking',
                 'game_name' => 'Buffalo King',
                 'target_multiplier' => 300.00,
-                'min_bet' => 40000.00,
-                'prize_sc' => 20000000.00,
+                'min_bet' => 0.40,
+                'prize_sc' => 200.00,
                 'status' => 'active',
                 'expires_at' => now()->addDays(6),
             ]);

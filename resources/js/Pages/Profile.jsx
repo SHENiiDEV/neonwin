@@ -110,7 +110,7 @@ export default function Profile({ stats = {}, transactions = [], vipTiers = [] }
 
     const currentStyle = tierColors[currentTier.level] || tierColors[1];
 
-    const formatCoins = (val) => Math.floor(Number(val || 0)).toLocaleString('en-US');
+    const formatCoins = (val) => Number(val || 0).toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
     const formatSc = formatCoins;
 
     return (
@@ -187,16 +187,16 @@ export default function Profile({ stats = {}, transactions = [], vipTiers = [] }
                             {/* Wallet & Actions Right */}
                             <div className="flex flex-wrap items-center gap-3 w-full lg:w-auto justify-between lg:justify-end pt-4 lg:pt-0 border-t lg:border-t-0 border-white/10">
                                 <div className="p-3 sm:p-3.5 rounded-2xl bg-[#0e0a19]/80 border border-[#3e2c52] flex flex-col min-w-[130px]">
-                                    <span className="text-[10px] text-gray-400 uppercase tracking-wider font-bold">Coins Wallet</span>
+                                    <span className="text-[10px] text-gray-400 uppercase tracking-wider font-bold">SC Wallet</span>
                                     <span className="font-heading font-black text-xl text-yellow-300 flex items-baseline gap-1">
-                                        {formatCoins(stats.balance)} <small className="text-xs text-yellow-500 font-mono">Coins</small>
+                                        {formatCoins(stats.balance)} <small className="text-xs text-yellow-500 font-mono">SC</small>
                                     </span>
                                 </div>
 
                                 <div className="p-3 sm:p-3.5 rounded-2xl bg-cyan-950/30 border border-cyan-500/30 flex flex-col min-w-[130px]">
                                     <span className="text-[10px] text-cyan-300 uppercase tracking-wider font-bold">Cyber Vault</span>
                                     <span className="font-heading font-black text-xl text-cyan-300 flex items-baseline gap-1">
-                                        {formatCoins(user?.vault_balance)} <small className="text-xs text-cyan-400 font-mono">Coins</small>
+                                        {formatCoins(user?.vault_balance)} <small className="text-xs text-cyan-400 font-mono">SC</small>
                                     </span>
                                 </div>
 
@@ -206,7 +206,7 @@ export default function Profile({ stats = {}, transactions = [], vipTiers = [] }
                                         className="nw-button nw-button-purple px-4 py-2.5 text-xs flex items-center justify-center gap-1.5 shadow-md"
                                     >
                                         <Coins size={14} />
-                                        <span>Get Coins</span>
+                                        <span>Get SC</span>
                                     </button>
                                     
                                     <button 
@@ -247,7 +247,7 @@ export default function Profile({ stats = {}, transactions = [], vipTiers = [] }
                                 <Coins size={15} className="text-yellow-400" />
                             </div>
                             <span className="font-heading font-black text-lg sm:text-xl text-yellow-300">
-                                {formatCoins(stats.balance)} <small className="text-[10px] text-yellow-500">Coins</small>
+                                {formatCoins(stats.balance)} <small className="text-[10px] text-yellow-500">SC</small>
                             </span>
                         </div>
 
@@ -258,7 +258,7 @@ export default function Profile({ stats = {}, transactions = [], vipTiers = [] }
                                 <Zap size={15} className="text-purple-400" />
                             </div>
                             <span className="font-heading font-black text-lg sm:text-xl text-white">
-                                {formatCoins(stats.total_bets)} <small className="text-[10px] text-purple-400">Coins</small>
+                                {formatCoins(stats.total_bets)} <small className="text-[10px] text-purple-400">SC</small>
                             </span>
                         </div>
 
@@ -269,7 +269,7 @@ export default function Profile({ stats = {}, transactions = [], vipTiers = [] }
                                 <Trophy size={15} className="text-emerald-400" />
                             </div>
                             <span className="font-heading font-black text-lg sm:text-xl text-emerald-400">
-                                {formatCoins(stats.total_wins)} <small className="text-[10px] text-emerald-500">Coins</small>
+                                {formatCoins(stats.total_wins)} <small className="text-[10px] text-emerald-500">SC</small>
                             </span>
                         </div>
 
@@ -281,7 +281,7 @@ export default function Profile({ stats = {}, transactions = [], vipTiers = [] }
                             </div>
                             <div className="flex flex-col">
                                 <span className="font-heading font-black text-lg sm:text-xl text-amber-300">
-                                    {formatCoins(stats.biggest_win?.amount)} <small className="text-[10px] text-amber-500">Coins</small>
+                                    {formatCoins(stats.biggest_win?.amount)} <small className="text-[10px] text-amber-500">SC</small>
                                 </span>
                                 {stats.biggest_win?.multiplier > 0 && (
                                     <span className="text-[10px] text-amber-400/80 font-mono">
@@ -390,7 +390,7 @@ export default function Profile({ stats = {}, transactions = [], vipTiers = [] }
                                         </div>
                                         <div>
                                             <h3 className="font-heading font-black text-lg text-white">VIP Club Progress</h3>
-                                            <p className="text-xs text-gray-400">Earn 1 VIP XP per 10,000 Coins wagered</p>
+                                            <p className="text-xs text-gray-400">Earn 1 VIP XP per 1 SC wagered</p>
                                         </div>
                                     </div>
 
@@ -456,7 +456,7 @@ export default function Profile({ stats = {}, transactions = [], vipTiers = [] }
                                         </div>
                                         <div className="p-3.5 rounded-xl bg-[#1a1427] border border-white/5 flex flex-col">
                                             <span className="text-[10px] text-gray-400">Wager Req.</span>
-                                            <span className="font-bold text-purple-300 text-sm mt-1">0x (Pure Coins)</span>
+                                            <span className="font-bold text-purple-300 text-sm mt-1">0x (Pure SC)</span>
                                         </div>
                                     </div>
                                 </div>
@@ -496,7 +496,7 @@ export default function Profile({ stats = {}, transactions = [], vipTiers = [] }
                                                 <span className="text-lg">🏆</span>
                                                 <div>
                                                     <strong className="block text-xs text-white">Tournaments</strong>
-                                                    <span className="text-[10px] text-amber-300">Prize pools up to 1,000,000,000 Coins</span>
+                                                    <span className="text-[10px] text-amber-300">Grand tournament prize pools</span>
                                                 </div>
                                             </div>
                                             <ArrowUpRight size={14} className="text-amber-400 group-hover:translate-x-0.5 transition" />
@@ -567,16 +567,16 @@ export default function Profile({ stats = {}, transactions = [], vipTiers = [] }
                                                             </div>
                                                         </td>
                                                         <td className="py-3.5 px-3 font-mono text-gray-300">
-                                                            {formatCoins(tx.bet_amount)} Coins
+                                                            {formatCoins(tx.bet_amount)} SC
                                                         </td>
                                                         <td className={`py-3.5 px-3 font-mono font-bold ${isWin ? 'text-emerald-400' : 'text-gray-400'}`}>
-                                                            {formatCoins(tx.win_amount)} Coins
+                                                            {formatCoins(tx.win_amount)} SC
                                                         </td>
                                                         <td className="py-3.5 px-3 font-mono text-gray-400">
                                                             {multiplier !== '-' ? `${multiplier}x` : '—'}
                                                         </td>
                                                         <td className="py-3.5 px-3 font-mono text-yellow-300/90">
-                                                            {formatCoins(tx.balance_after)} Coins
+                                                            {formatCoins(tx.balance_after)} SC
                                                         </td>
                                                         <td className="py-3.5 px-3 text-right">
                                                             {isWin ? (
@@ -621,10 +621,10 @@ export default function Profile({ stats = {}, transactions = [], vipTiers = [] }
                                         <Users size={14} /> CYBER SYNDICATE NETWORK
                                     </span>
                                     <h3 className="font-heading font-black text-2xl sm:text-3xl text-white">
-                                        Build your crew. <span className="text-transparent bg-clip-text bg-gradient-to-r from-yellow-300 via-amber-200 to-yellow-500">Earn lifetime Coins.</span>
+                                        Build your crew. <span className="text-transparent bg-clip-text bg-gradient-to-r from-yellow-300 via-amber-200 to-yellow-500">Earn lifetime SC.</span>
                                     </h3>
                                     <p className="text-xs text-gray-300 mt-2 leading-relaxed">
-                                        Invite friends to Neonwin. Get <strong className="text-yellow-300">500,000 Coins</strong> for every verified signup + ongoing syndicate rakeback shares on their gameplay!
+                                        Invite friends to Neonwin. Get <strong className="text-yellow-300">0.50 SC</strong> for every verified signup + ongoing syndicate rakeback shares on their gameplay!
                                     </p>
                                 </div>
 
@@ -638,7 +638,7 @@ export default function Profile({ stats = {}, transactions = [], vipTiers = [] }
                                     <div className="p-4 rounded-2xl bg-black/40 border border-yellow-500/20 text-center min-w-[120px]">
                                         <span className="text-[10px] text-gray-400 uppercase font-bold block">Total Earned</span>
                                         <strong className="font-heading font-black text-2xl text-yellow-300">
-                                            {Math.floor(Number(syndicateData?.total_earned_sc ?? 0)).toLocaleString()} <small className="text-xs">Coins</small>
+                                            {formatCoins(syndicateData?.total_earned_sc)} <small className="text-xs">SC</small>
                                         </strong>
                                     </div>
                                 </div>

@@ -339,7 +339,7 @@ export default function Header({
                         </button>
 
                         <button className="nw-button nw-button-purple" onClick={onOpenDeposit}>
-                            <Plus size={16} /> Get Coins
+                            <Plus size={16} /> Get SC
                         </button>
                         
                         <div className="relative">

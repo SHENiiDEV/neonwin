@@ -102,7 +102,7 @@ export default function AuthModal({ isOpen, onClose, initialMode = 'login' }) {
                         {mode === 'register' ? (
                             <>
                                 <h2>Your world of play.<br /><em>Join Neonwin today.</em></h2>
-                                <p>Instant verified registration.<br />Explore 1,500+ slots, daily 100,000 Coins login gifts, and VIP cashback.</p>
+                                <p>Instant verified registration.<br />Explore 1,500+ slots, daily 0.02 SC login gifts, and VIP cashback.</p>
                             </>
                         ) : (
                             <>
@@ -119,7 +119,7 @@ export default function AuthModal({ isOpen, onClose, initialMode = 'login' }) {
                             
                             <div className="flex items-center gap-2 text-xs text-white">
                                 <Coins size={15} className="text-yellow-400 flex-shrink-0" />
-                                <span><strong>100,000 Coins Free</strong> Daily Login Gift</span>
+                                <span><strong>0.02 SC Free</strong> Daily Login Gift</span>
                             </div>
 
                             <div className="flex items-center gap-2 text-xs text-white">
