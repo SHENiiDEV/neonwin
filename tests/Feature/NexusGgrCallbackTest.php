@@ -17,7 +17,7 @@ class NexusGgrCallbackTest extends TestCase
             'email' => 'test@neonwin.com',
             'password' => bcrypt('secret'),
             'user_code' => 'ZP-123456',
-            'game_balance' => 2800000.00,
+            'game_balance' => 2800000.00, // 28.00 SC
         ]);
 
         $response = $this->postJson('/gold_api', [
@@ -29,7 +29,7 @@ class NexusGgrCallbackTest extends TestCase
         $response->assertStatus(200);
         $response->assertJson([
             'status' => 1,
-            'user_balance' => 2800000.00,
+            'user_balance' => 28.00,
         ]);
     }
 
@@ -40,13 +40,13 @@ class NexusGgrCallbackTest extends TestCase
             'email' => 'social@neonwin.com',
             'password' => bcrypt('secret'),
             'user_code' => 'ZP-777777',
-            'game_balance' => 1000000.00,
+            'game_balance' => 1000000.00, // 10.00 SC
         ]);
 
         $roundId = 63792613432127;
         $txnIdV2 = '64a83f2fc597acc9004eec52c3f84c30';
 
-        // 1. Debit/Credit Slot transaction
+        // 1. Debit/Credit Slot transaction (Bet 1.00 SC = 100,000 Coins, Win 2.50 SC = 250,000 Coins)
         $response = $this->postJson('/gold_api', [
             'method' => 'transaction',
             'agent_code' => 'zenithplay',
@@ -57,8 +57,8 @@ class NexusGgrCallbackTest extends TestCase
                 'provider_code' => 'PRAGMATIC',
                 'game_code' => 'vs20midas',
                 'type' => 'BASE',
-                'bet_money' => 100000.00,
-                'win_money' => 250000.00,
+                'bet_money' => 1.00,
+                'win_money' => 2.50,
                 'round_id' => $roundId,
                 'txn_id' => (string) $roundId,
                 'txn_id_v2' => $txnIdV2,
@@ -69,7 +69,7 @@ class NexusGgrCallbackTest extends TestCase
         $response->assertStatus(200);
         $response->assertJson([
             'status' => 1,
-            'user_balance' => 1150000.00,
+            'user_balance' => 11.50,
         ]);
 
         // 2. Test Deduplication on txn_id_v2
@@ -82,8 +82,8 @@ class NexusGgrCallbackTest extends TestCase
             'slot' => [
                 'provider_code' => 'PRAGMATIC',
                 'game_code' => 'vs20midas',
-                'bet_money' => 100000.00,
-                'win_money' => 250000.00,
+                'bet_money' => 1.00,
+                'win_money' => 2.50,
                 'txn_id_v2' => $txnIdV2,
             ],
         ]);
@@ -91,7 +91,7 @@ class NexusGgrCallbackTest extends TestCase
         $duplicateResponse->assertStatus(200);
         $duplicateResponse->assertJson([
             'status' => 1,
-            'user_balance' => 1150000.00,
+            'user_balance' => 11.50,
             'msg' => 'TRANSACTION_ALREADY_PROCESSED',
         ]);
     }

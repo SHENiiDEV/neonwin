@@ -9,5 +9,5 @@ return [
     'mock_mode' => env('NEXUS_MOCK_MODE', env('GGR_MOCK_MODE', false)),
     'lobby_url' => env('APP_URL', 'https://neonwin.co.uk'),
     'currency' => env('NEXUS_CURRENCY', env('DEFAULT_CURRENCY', 'COINS')),
-    'denomination_rate' => (int) env('NEXUS_DENOMINATION_RATE', 1),
+    'denomination_rate' => (int) env('NEXUS_DENOMINATION_RATE', 100000),
 ];
