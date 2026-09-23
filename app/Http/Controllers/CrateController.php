@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use App\Models\UserCrate;
 use Illuminate\Http\JsonResponse;
+use Illuminate\Support\Arr;
 use Illuminate\Support\Facades\Auth;
 
 class CrateController extends Controller
@@ -51,25 +52,25 @@ class CrateController extends Controller
 
         switch ($crate->tier) {
             case 'mythic':
-                $rewardSc = (float) fake()->randomElement([5.00, 7.50, 10.00, 15.00]);
-                $rewardXp = fake()->numberBetween(100, 500);
+                $rewardSc = (float) Arr::random([5.00, 7.50, 10.00, 15.00]);
+                $rewardXp = random_int(100, 500);
                 break;
             case 'platinum':
-                $rewardSc = (float) fake()->randomElement([2.50, 4.00, 6.00, 8.00]);
-                $rewardXp = fake()->numberBetween(50, 200);
+                $rewardSc = (float) Arr::random([2.50, 4.00, 6.00, 8.00]);
+                $rewardXp = random_int(50, 200);
                 break;
             case 'gold':
-                $rewardSc = (float) fake()->randomElement([1.00, 2.00, 3.50, 5.00]);
-                $rewardXp = fake()->numberBetween(30, 100);
+                $rewardSc = (float) Arr::random([1.00, 2.00, 3.50, 5.00]);
+                $rewardXp = random_int(30, 100);
                 break;
             case 'silver':
-                $rewardSc = (float) fake()->randomElement([0.50, 1.00, 1.50, 2.50]);
-                $rewardXp = fake()->numberBetween(15, 50);
+                $rewardSc = (float) Arr::random([0.50, 1.00, 1.50, 2.50]);
+                $rewardXp = random_int(15, 50);
                 break;
             case 'bronze':
             default:
-                $rewardSc = (float) fake()->randomElement([0.20, 0.40, 0.60, 1.00]);
-                $rewardXp = fake()->numberBetween(5, 20);
+                $rewardSc = (float) Arr::random([0.20, 0.40, 0.60, 1.00]);
+                $rewardXp = random_int(5, 20);
                 break;
         }
 
