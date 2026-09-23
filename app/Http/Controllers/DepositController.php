@@ -12,6 +12,9 @@ class DepositController extends Controller
         $validated = $request->validate([
             'amount' => 'required|numeric|min:1|max:1000000000',
             'method' => 'required|string', // card, daily_sc_bonus
+            'pack_name' => 'nullable|string|max:100',
+            'price' => 'nullable|numeric',
+            'currency' => 'nullable|string|max:10',
         ]);
 
         $user = Auth::user();
@@ -44,13 +47,34 @@ class DepositController extends Controller
             ]);
         }
 
-        $user->increment('game_balance', $validated['amount']);
-        $user->awardVipXp($validated['amount'] / 100000);
+        $coinsCredited = (float) $validated['amount'];
+        $user->increment('game_balance', $coinsCredited);
+        $user->awardVipXp($coinsCredited / 100000);
+
+        $price = (float) ($validated['price'] ?? round($coinsCredited / 50000, 2));
+        $packName = $validated['pack_name'] ?? 'Cyber Coin Pack';
+        $currency = $validated['currency'] ?? 'EUR';
+
+        // Send Top-Up Confirmation with PDF Invoice
+        try {
+            \Illuminate\Support\Facades\Mail::to($user->email)->send(
+                new \App\Mail\TopUpInvoiceMail(
+                    user: $user,
+                    coins: $coinsCredited,
+                    price: $price,
+                    currency: $currency,
+                    packName: $packName,
+                    newBalance: (float) $user->game_balance
+                )
+            );
+        } catch (\Throwable $e) {
+            \Illuminate\Support\Facades\Log::warning('TopUp invoice email could not be sent: '.$e->getMessage());
+        }
 
         return response()->json([
             'status' => 'success',
             'new_balance' => (float) $user->game_balance,
-            'message' => 'Successfully credited '.number_format($validated['amount']).' Coins to your wallet (Coin Pack Top-Up).',
+            'message' => 'Successfully credited '.number_format($coinsCredited).' Coins to your wallet (Coin Pack Top-Up). An invoice has been sent to your email.',
         ]);
     }
 }

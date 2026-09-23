@@ -86,10 +86,14 @@ export default function DepositModal({ isOpen, onClose }) {
         setProcessing(type);
         setFeedback(null);
         const creditAmount = type === 'daily' ? 100000 : totalCoins;
+        const convertedPrice = Math.round(selectedPack.basePrice * curr.rate);
         try {
             const response = await axios.post('/deposit', {
                 amount: creditAmount,
                 method: type === 'daily' ? 'daily_sc_bonus' : 'card',
+                pack_name: type === 'daily' ? 'Daily Free 100,000 Coins' : selectedPack.name,
+                price: type === 'daily' ? 0 : convertedPrice,
+                currency: selectedCurrency,
             });
             if (response.data?.status !== 'success') {
                 throw new Error('The credit was not confirmed. Please try again.');
@@ -100,7 +104,7 @@ export default function DepositModal({ isOpen, onClose }) {
                 type: 'success', 
                 message: type === 'daily' 
                     ? 'Claimed 100,000 Free Daily Coins! Balance updated.' 
-                    : `${creditAmount.toLocaleString('en-US')} Coins added to your wallet. You’re ready to play.` 
+                    : `${creditAmount.toLocaleString('en-US')} Coins added to your wallet. Receipt sent to your email.` 
             });
             router.reload({ only: ['auth'] });
         } catch (error) {
