@@ -8,24 +8,17 @@ export function Brand() {
 
 function WalletBalanceDisplay({ balance = 0 }) {
     const num = Number(balance || 0);
-    const formatted = Math.floor(num).toLocaleString('en-US');
-    const scEquivalent = (num / 100000).toFixed(2);
+    const formatted = num.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
     
-    // Auto-scale font size so large numbers fit perfectly in the card
-    const fontSize = formatted.length > 14 ? '13px' : (formatted.length > 10 ? '16px' : '19px');
+    // Auto-scale font size so numbers fit perfectly in the card
+    const fontSize = formatted.length > 14 ? '14px' : (formatted.length > 10 ? '17px' : '21px');
 
     return (
-        <div className="flex flex-col gap-1 w-full min-w-0" title={`${formatted} Coins (≈ ${scEquivalent} SC in slots)`}>
-            <div className="nw-wallet-balance">
-                <span style={{ fontSize, color: '#ffffff', fontWeight: 800, fontVariantNumeric: 'tabular-nums' }}>
-                    {formatted}
-                </span>
-                <small style={{ color: '#facc15', fontWeight: 800 }}>COINS</small>
-            </div>
-            <div className="flex items-center justify-between text-[10px] font-mono text-gray-400 px-0.5">
-                <span className="text-gray-400">In-Slot Value:</span>
-                <span className="text-yellow-300 font-bold">≈ {scEquivalent} SC</span>
-            </div>
+        <div className="nw-wallet-balance" title={`${formatted} SC`}>
+            <span style={{ fontSize, color: '#ffffff', fontWeight: 800, fontVariantNumeric: 'tabular-nums' }}>
+                {formatted}
+            </span>
+            <small style={{ color: '#facc15', fontWeight: 800 }}>SC</small>
         </div>
     );
 }
@@ -43,13 +36,14 @@ export default function Sidebar({ isOpen, setIsOpen, onOpenDeposit, onOpenVip, o
             <div className="nw-wallet">
                 <div className="flex items-center justify-between mb-1.5">
                     <span className="nw-eyebrow" style={{ margin: 0 }}>YOUR PLAY WALLET</span>
-                    <span className="px-1.5 py-0.5 rounded bg-yellow-400/20 text-yellow-300 font-mono font-bold text-[9px]">COINS</span>
+                    <span className="px-1.5 py-0.5 rounded bg-yellow-400/20 text-yellow-300 font-mono font-bold text-[9px]">SC</span>
                 </div>
                 <Link href={auth?.user ? "/profile" : "#"} onClick={() => setIsOpen(false)} className="block hover:opacity-85 transition min-w-0 w-full mb-1">
                     <WalletBalanceDisplay balance={auth?.user?.game_balance} />
                 </Link>
-                <button onClick={onOpenDeposit} className="nw-button nw-button-purple w-full mt-2"><Gift size={15} /> Get Coins & SC</button>
+                <button onClick={onOpenDeposit} className="nw-button nw-button-purple w-full mt-2"><Gift size={15} /> Get Sweeps Coins</button>
             </div>
+
 
             <nav className="nw-navigation">
                 <span className="nw-nav-label">LET’S PLAY</span>

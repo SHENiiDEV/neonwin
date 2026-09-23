@@ -11,12 +11,12 @@ const currencies = [
 ];
 
 const coinPacks = [
-    { basePrice: 50, coins: 2500000, bonusCoins: 300000, name: 'Golden Energy', popular: true },
-    { basePrice: 100, coins: 5000000, bonusCoins: 800000, name: 'Extra Bright' },
-    { basePrice: 250, coins: 12500000, bonusCoins: 2500000, name: 'High Roller' },
-    { basePrice: 500, coins: 25000000, bonusCoins: 6000000, name: 'The Full Glow' },
-    { basePrice: 1000, coins: 50000000, bonusCoins: 15000000, name: 'Neon Emperor' },
-    { basePrice: 2500, coins: 125000000, bonusCoins: 45000000, name: 'Cyber Whale' },
+    { basePrice: 10, coins: 5.0, bonusCoins: 0.5, name: 'Neon Spark' },
+    { basePrice: 20, coins: 10.0, bonusCoins: 1.5, name: 'Golden Energy' },
+    { basePrice: 50, coins: 25.0, bonusCoins: 5.0, name: 'Extra Bright', popular: true },
+    { basePrice: 100, coins: 50.0, bonusCoins: 15.0, name: 'High Roller' },
+    { basePrice: 250, coins: 125.0, bonusCoins: 40.0, name: 'The Full Glow' },
+    { basePrice: 500, coins: 250.0, bonusCoins: 100.0, name: 'Cyber Whale' },
 ];
 
 function CoinArt({ tier = 0 }) {
@@ -63,7 +63,7 @@ export default function DepositModal({ isOpen, onClose }) {
     
     const curr = currencies.find(c => c.code === selectedCurrency) || currencies[0];
     const selectedPack = coinPacks.find(pack => pack.basePrice === selectedPrice) || coinPacks[0];
-    const totalCoins = selectedPack.coins + selectedPack.bonusCoins;
+    const totalCoins = Number((selectedPack.coins + selectedPack.bonusCoins).toFixed(2));
 
     const getPriceInCurrency = (baseEur) => {
         const converted = Math.round(baseEur * curr.rate);
@@ -79,19 +79,19 @@ export default function DepositModal({ isOpen, onClose }) {
     const creditCoins = async (type) => {
         if (requestInFlight.current) return;
         if (!user) {
-            setFeedback({ type: 'error', message: 'Log in to claim or add coins to your wallet.' });
+            setFeedback({ type: 'error', message: 'Log in to claim or add SC to your wallet.' });
             return;
         }
         requestInFlight.current = true;
         setProcessing(type);
         setFeedback(null);
-        const creditAmount = type === 'daily' ? 100000 : totalCoins;
+        const creditAmount = type === 'daily' ? 1.0 : totalCoins;
         const convertedPrice = Math.round(selectedPack.basePrice * curr.rate);
         try {
             const response = await axios.post('/deposit', {
                 amount: creditAmount,
                 method: type === 'daily' ? 'daily_sc_bonus' : 'card',
-                pack_name: type === 'daily' ? 'Daily Free 100,000 Coins' : selectedPack.name,
+                pack_name: type === 'daily' ? 'Daily Free 1.00 SC' : selectedPack.name,
                 price: type === 'daily' ? 0 : convertedPrice,
                 currency: selectedCurrency,
             });
@@ -103,12 +103,12 @@ export default function DepositModal({ isOpen, onClose }) {
             setFeedback({ 
                 type: 'success', 
                 message: type === 'daily' 
-                    ? 'Claimed 100,000 Free Daily Coins! Balance updated.' 
-                    : `${creditAmount.toLocaleString('en-US')} Coins added to your wallet. Receipt sent to your email.` 
+                    ? 'Claimed 1.00 Free Daily SC! Balance updated.' 
+                    : `${creditAmount.toFixed(2)} SC added to your wallet (Rate: 1 EUR = 0.5 SC). Receipt sent to your email.` 
             });
             router.reload({ only: ['auth'] });
         } catch (error) {
-            setFeedback({ type: 'error', message: error.response?.data?.message || error.message || 'Unable to add coins. Please try again.' });
+            setFeedback({ type: 'error', message: error.response?.data?.message || error.message || 'Unable to add SC. Please try again.' });
         } finally {
             requestInFlight.current = false;
             setProcessing(null);
@@ -122,12 +122,12 @@ export default function DepositModal({ isOpen, onClose }) {
                 <aside className="nw-topup-story">
                     <div className="nw-topup-story-copy">
                         <span className="nw-eyebrow"><Sparkles size={13} /> A LITTLE NEON MAGIC</span>
-                        <h2>More coins.<br /><em>More good times.</em></h2>
-                        <p>Pick your pack.<br />Find your next favorite.</p>
+                        <h2>More SC.<br /><em>More good times.</em></h2>
+                        <p>Pick your pack.<br />1 EUR = 0.5 SC value.</p>
                         <div className="nw-topup-balance">
-                            <span>Your Coin balance</span>
+                            <span>Your SC balance</span>
                             <strong>
-                                <Coins size={20} />{Number(creditedBalance ?? user?.game_balance ?? 0).toLocaleString('en-US')}<small> Coins</small>
+                                <Coins size={20} />{Number(creditedBalance ?? user?.game_balance ?? 0).toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}<small> SC</small>
                             </strong>
                         </div>
                     </div>
@@ -137,7 +137,7 @@ export default function DepositModal({ isOpen, onClose }) {
                 <div className="nw-topup-main">
                     <header className="nw-topup-heading">
                         <div className="flex items-center justify-between flex-wrap gap-2">
-                            <span className="nw-topup-kicker"><Wallet size={13} /> YOUR PLAY WALLET <span><FlaskConical size={11} /> Test mode</span></span>
+                            <span className="nw-topup-kicker"><Wallet size={13} /> YOUR PLAY WALLET <span><FlaskConical size={11} /> 1 EUR = 0.5 SC</span></span>
                             
                             {/* Currency Selector: EUR / GBP / USD */}
                             <div className="flex items-center gap-1 bg-[#160f22] p-1 rounded-xl border border-[#3b284c]">
@@ -158,13 +158,13 @@ export default function DepositModal({ isOpen, onClose }) {
                                 ))}
                             </div>
                         </div>
-                        <h2 id="topup-title">Top up your good times.</h2>
-                        <p id="topup-description">High value coin packs starting from {getPriceInCurrency(50)}.</p>
+                        <h2 id="topup-title">Top up your Sweeps Coins.</h2>
+                        <p id="topup-description">Sweeps Coin packs starting from {getPriceInCurrency(10)} (1 EUR = 0.5 SC).</p>
                     </header>
 
                     <div className="nw-pack-heading">
                         <h3>Choose your pack ({selectedCurrency})</h3>
-                        <span>Bonus Coins included <Sparkles size={12} /></span>
+                        <span>Bonus SC included <Sparkles size={12} /></span>
                     </div>
 
                     <div className="nw-pack-grid" role="group" aria-label="Coin packages">
@@ -172,7 +172,7 @@ export default function DepositModal({ isOpen, onClose }) {
                             <button 
                                 key={pack.basePrice} 
                                 aria-pressed={selectedPrice === pack.basePrice} 
-                                aria-label={`${(pack.coins + pack.bonusCoins).toLocaleString()} Coins including ${(pack.bonusCoins).toLocaleString()} bonus, ${getPriceInCurrency(pack.basePrice)}`} 
+                                aria-label={`${(pack.coins + pack.bonusCoins).toFixed(2)} SC including ${(pack.bonusCoins).toFixed(2)} bonus, ${getPriceInCurrency(pack.basePrice)}`} 
                                 disabled={!!processing} 
                                 onClick={() => { setSelectedPrice(pack.basePrice); setFeedback(null); }} 
                                 className={`nw-coin-pack ${selectedPrice === pack.basePrice ? 'is-selected' : ''} ${pack.popular ? 'is-popular' : ''}`}
@@ -181,8 +181,8 @@ export default function DepositModal({ isOpen, onClose }) {
                                 <span className="nw-pack-check">{selectedPrice === pack.basePrice && <Check size={11} strokeWidth={3} />}</span>
                                 <CoinArt tier={index} />
                                 <span className="nw-pack-name">{pack.name}</span>
-                                <strong>{((pack.coins + pack.bonusCoins) / 1000000).toFixed(1)}M<small> Coins</small></strong>
-                                <span className="nw-pack-bonus">{(pack.coins).toLocaleString('en-US')} <b>+ {(pack.bonusCoins).toLocaleString('en-US')} bonus</b></span>
+                                <strong>{(pack.coins + pack.bonusCoins).toFixed(1)}<small> SC</small></strong>
+                                <span className="nw-pack-bonus">{(pack.coins).toFixed(1)} <b>+ {(pack.bonusCoins).toFixed(1)} bonus</b></span>
                                 <span className="nw-pack-price">{getPriceInCurrency(pack.basePrice)}<small> {selectedCurrency}</small></span>
                             </button>
                         ))}
@@ -191,11 +191,11 @@ export default function DepositModal({ isOpen, onClose }) {
                         <div className="nw-daily-pack">
                             <span className="nw-daily-icon"><Gift size={29} strokeWidth={1.5} /></span>
                             <span className="nw-pack-name">Your daily free claim</span>
-                            <strong>100,000<small> Coins</small></strong>
+                            <strong>1.00<small> SC</small></strong>
                             <span className="nw-daily-caption">
                                 {!canClaimDaily && countdownStr 
                                     ? `Next claim in: ${countdownStr}` 
-                                    : 'Free 100,000 Coins every 24 hours.'}
+                                    : 'Free 1.00 SC every 24 hours.'}
                             </span>
                             <button 
                                 disabled={!!processing || !canClaimDaily} 
@@ -207,7 +207,7 @@ export default function DepositModal({ isOpen, onClose }) {
                                 ) : !canClaimDaily ? (
                                     <>Claimed ({countdownStr || 'Locked'}) <Check size={13} /></>
                                 ) : (
-                                    <>Claim Free 100K <ArrowRight size={13} /></>
+                                    <>Claim Free 1.00 SC <ArrowRight size={13} /></>
                                 )}
                             </button>
                         </div>
@@ -216,7 +216,7 @@ export default function DepositModal({ isOpen, onClose }) {
                     <div className="nw-topup-summary">
                         <div>
                             <span>You’ll receive</span>
-                            <strong>{totalCoins.toLocaleString('en-US')} Coins <small>includes {selectedPack.bonusCoins.toLocaleString('en-US')} bonus</small></strong>
+                            <strong>{totalCoins.toFixed(2)} SC <small>includes {selectedPack.bonusCoins.toFixed(2)} bonus</small></strong>
                         </div>
                         <div>
                             <span>Pack price</span>
@@ -238,12 +238,12 @@ export default function DepositModal({ isOpen, onClose }) {
                             onClick={() => creditCoins('pack')}
                         >
                             {processing === 'pack' ? (
-                                <><LoaderCircle size={16} className="animate-spin" /> Adding coins…</>
+                                <><LoaderCircle size={16} className="animate-spin" /> Adding SC…</>
                             ) : (
-                                <>Add {totalCoins.toLocaleString('en-US')} Coins ({getPriceInCurrency(selectedPack.basePrice)}) <ArrowRight size={17} /></>
+                                <>Add {totalCoins.toFixed(2)} SC ({getPriceInCurrency(selectedPack.basePrice)}) <ArrowRight size={17} /></>
                             )}
                         </button>
-                        <p><FlaskConical size={12} /> Demo wallet test mode. No real charge incurred.</p>
+                        <p><FlaskConical size={12} /> Sweeps Coins Wallet • 1 EUR = 0.5 SC</p>
                     </div>
 
                     <footer className="nw-topup-foot">
@@ -255,3 +255,4 @@ export default function DepositModal({ isOpen, onClose }) {
         </div>
     );
 }
+

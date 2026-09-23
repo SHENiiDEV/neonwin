@@ -13,7 +13,7 @@ class DepositController extends Controller
     public function deposit(Request $request)
     {
         $validated = $request->validate([
-            'amount' => 'required|numeric|min:1|max:1000000000',
+            'amount' => 'required|numeric|min:0.01|max:1000000000',
             'method' => 'required|string', // card, daily_sc_bonus
             'pack_name' => 'nullable|string|max:100',
             'price' => 'nullable|numeric',
@@ -22,7 +22,7 @@ class DepositController extends Controller
 
         $user = Auth::user();
         if (! $user) {
-            return response()->json(['status' => 'error', 'message' => 'Please log in to claim or add Coins.'], 401);
+            return response()->json(['status' => 'error', 'message' => 'Please log in to claim or add SC.'], 401);
         }
 
         if ($validated['method'] === 'daily_sc_bonus') {
@@ -32,30 +32,30 @@ class DepositController extends Controller
 
                 return response()->json([
                     'status' => 'error',
-                    'message' => "You have already claimed your daily free 100,000 Coins. Next claim available in {$diff}.",
+                    'message' => "You have already claimed your daily free 1.00 SC. Next claim available in {$diff}.",
                 ], 422);
             }
 
-            $dailyCoins = 100000;
-            $user->increment('game_balance', $dailyCoins);
+            $dailySc = 1.00;
+            $user->increment('game_balance', $dailySc);
             $user->update(['last_daily_bonus_at' => now()]);
-            $user->awardVipXp(1);
+            $user->awardVipXp(10);
 
             return response()->json([
                 'status' => 'success',
                 'new_balance' => (float) $user->game_balance,
                 'can_claim_daily_bonus' => false,
                 'next_daily_bonus_at' => $user->nextDailyBonusAt()?->toIso8601String(),
-                'message' => 'Successfully claimed your free 100,000 Coins Daily Bonus! Next claim available in 24 hours.',
+                'message' => 'Successfully claimed your free 1.00 SC Daily Bonus! Next claim available in 24 hours.',
             ]);
         }
 
-        $coinsCredited = (float) $validated['amount'];
-        $user->increment('game_balance', $coinsCredited);
-        $user->awardVipXp($coinsCredited / 100000);
+        $scCredited = (float) $validated['amount'];
+        $user->increment('game_balance', $scCredited);
+        $user->awardVipXp($scCredited * 10);
 
-        $price = (float) ($validated['price'] ?? round($coinsCredited / 50000, 2));
-        $packName = $validated['pack_name'] ?? 'Cyber Coin Pack';
+        $price = (float) ($validated['price'] ?? round($scCredited * 2, 2));
+        $packName = $validated['pack_name'] ?? 'Sweeps Coins Pack';
         $currency = $validated['currency'] ?? 'EUR';
 
         // Send Top-Up Confirmation with PDF Invoice
@@ -63,7 +63,7 @@ class DepositController extends Controller
             Mail::to($user->email)->send(
                 new TopUpInvoiceMail(
                     user: $user,
-                    coins: $coinsCredited,
+                    coins: $scCredited,
                     price: $price,
                     currency: $currency,
                     packName: $packName,
@@ -77,7 +77,8 @@ class DepositController extends Controller
         return response()->json([
             'status' => 'success',
             'new_balance' => (float) $user->game_balance,
-            'message' => 'Successfully credited '.number_format($coinsCredited).' Coins to your wallet (Coin Pack Top-Up). An invoice has been sent to your email.',
+            'message' => 'Successfully credited '.number_format($scCredited, 2).' SC to your wallet (1 EUR = 0.5 SC). Receipt sent to your email.',
         ]);
     }
 }
+

@@ -17,7 +17,7 @@ class NexusGgrCallbackTest extends TestCase
             'email' => 'test@neonwin.com',
             'password' => bcrypt('secret'),
             'user_code' => 'ZP-123456',
-            'game_balance' => 2800000.00, // 28.00 SC
+            'game_balance' => 28.00,
         ]);
 
         $response = $this->postJson('/gold_api', [
@@ -40,13 +40,13 @@ class NexusGgrCallbackTest extends TestCase
             'email' => 'social@neonwin.com',
             'password' => bcrypt('secret'),
             'user_code' => 'ZP-777777',
-            'game_balance' => 1000000.00, // 10.00 SC
+            'game_balance' => 10.00,
         ]);
 
         $roundId = 63792613432127;
         $txnIdV2 = '64a83f2fc597acc9004eec52c3f84c30';
 
-        // 1. Debit/Credit Slot transaction (Bet 1.00 SC = 100,000 Coins, Win 2.50 SC = 250,000 Coins)
+        // 1. Debit/Credit Slot transaction (Bet 1.00 SC, Win 2.50 SC)
         $response = $this->postJson('/gold_api', [
             'method' => 'transaction',
             'agent_code' => 'zenithplay',
@@ -71,6 +71,7 @@ class NexusGgrCallbackTest extends TestCase
             'status' => 1,
             'user_balance' => 11.50,
         ]);
+
 
         // 2. Test Deduplication on txn_id_v2
         $duplicateResponse = $this->postJson('/gold_api', [

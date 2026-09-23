@@ -18,19 +18,19 @@ class DepositTest extends TestCase
         ]);
 
         $response = $this->actingAs($user)->postJson('/deposit', [
-            'amount' => 100000,
+            'amount' => 1.0,
             'method' => 'daily_sc_bonus',
         ]);
 
         $response->assertOk();
         $response->assertJson([
             'status' => 'success',
-            'new_balance' => 100000,
+            'new_balance' => 1.0,
             'can_claim_daily_bonus' => false,
         ]);
 
         $user->refresh();
-        $this->assertEquals(100000, $user->game_balance);
+        $this->assertEquals(1.0, $user->game_balance);
         $this->assertNotNull($user->last_daily_bonus_at);
         $this->assertFalse($user->canClaimDailyBonus());
     }
@@ -38,12 +38,12 @@ class DepositTest extends TestCase
     public function test_user_cannot_claim_daily_bonus_twice_within_24_hours(): void
     {
         $user = User::factory()->create([
-            'game_balance' => 100000.00,
+            'game_balance' => 1.00,
             'last_daily_bonus_at' => now()->subHours(2),
         ]);
 
         $response = $this->actingAs($user)->postJson('/deposit', [
-            'amount' => 100000,
+            'amount' => 1.0,
             'method' => 'daily_sc_bonus',
         ]);
 
@@ -53,30 +53,31 @@ class DepositTest extends TestCase
         ]);
 
         $user->refresh();
-        $this->assertEquals(100000.00, $user->game_balance);
+        $this->assertEquals(1.00, $user->game_balance);
     }
 
     public function test_user_can_claim_daily_bonus_after_24_hours(): void
     {
         $user = User::factory()->create([
-            'game_balance' => 100000.00,
+            'game_balance' => 1.00,
             'last_daily_bonus_at' => now()->subHours(25),
         ]);
 
         $this->assertTrue($user->canClaimDailyBonus());
 
         $response = $this->actingAs($user)->postJson('/deposit', [
-            'amount' => 100000,
+            'amount' => 1.0,
             'method' => 'daily_sc_bonus',
         ]);
 
         $response->assertOk();
         $response->assertJson([
             'status' => 'success',
-            'new_balance' => 200000,
+            'new_balance' => 2.0,
         ]);
 
         $user->refresh();
-        $this->assertEquals(200000.00, $user->game_balance);
+        $this->assertEquals(2.00, $user->game_balance);
     }
 }
+

@@ -2,11 +2,12 @@ import React from 'react';
 import { Trophy, Flame, Zap, Sparkles, TrendingUp } from 'lucide-react';
 
 const mockBigWins = [
-    { id: 1, player: 'NeonMaster', game: 'Sweet Bonanza', multiplier: '2,150x', win: '430,000,000 Coins', avatar: '👑', time: '12m ago' },
-    { id: 2, player: 'CyberViper', game: 'Sugar Rush', multiplier: '1,540x', win: '154,000,000 Coins', avatar: '⚡', time: '28m ago' },
-    { id: 3, player: 'LuckyRonin', game: 'Buffalo King', multiplier: '890x', win: '178,000,000 Coins', avatar: '🎯', time: '45m ago' },
-    { id: 4, player: 'StarGazer', game: 'Sweet Bonanza Xmas', multiplier: '620x', win: '124,000,000 Coins', avatar: '💎', time: '1h ago' },
+    { id: 1, player: 'NeonMaster', game: 'Sweet Bonanza', multiplier: '2,150x', win: '4,300.00 SC', avatar: '👑', time: '12m ago' },
+    { id: 2, player: 'CyberViper', game: 'Sugar Rush', multiplier: '1,540x', win: '1,540.00 SC', avatar: '⚡', time: '28m ago' },
+    { id: 3, player: 'LuckyRonin', game: 'Buffalo King', multiplier: '890x', win: '1,780.00 SC', avatar: '🎯', time: '45m ago' },
+    { id: 4, player: 'StarGazer', game: 'Sweet Bonanza Xmas', multiplier: '620x', win: '1,240.00 SC', avatar: '💎', time: '1h ago' },
 ];
+
 
 export default function HallOfFame({ wins = mockBigWins }) {
     return (

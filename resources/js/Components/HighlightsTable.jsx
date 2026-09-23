@@ -59,7 +59,7 @@ export default function HighlightsTable({ highlights = [] }) {
                                     {item.user_name}
                                 </td>
                                 <td>
-                                    {Math.floor(Number(item.bet_amount)).toLocaleString()} <span className="nw-muted">Coins</span>
+                                    {Number(item.bet_amount).toFixed(2)} <span className="nw-muted">SC</span>
                                 </td>
                                 <td>
                                     <span className={`nw-multiplier ${Number(item.multiplier) >= 100 ? 'is-big' : ''}`}>
@@ -67,8 +67,9 @@ export default function HighlightsTable({ highlights = [] }) {
                                     </span>
                                 </td>
                                 <td className="nw-win-amount">
-                                    +{Math.floor(Number(item.win_amount)).toLocaleString()} <small>Coins</small>
+                                    +{Number(item.win_amount).toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })} <small>SC</small>
                                 </td>
+
                             </tr>
                         ))}
                     </tbody>

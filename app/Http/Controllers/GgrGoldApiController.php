@@ -73,7 +73,7 @@ class GgrGoldApiController extends Controller
     protected function handleUserBalance(array $payload): JsonResponse
     {
         $userCode = $payload['user_code'] ?? $payload['user_id'] ?? '';
-        $rate = (float) config('nexus.denomination_rate', 100000);
+        $rate = (float) config('nexus.denomination_rate', 1);
 
         if (empty($userCode)) {
             Log::warning('⚠️ [Nexus user_balance] Missing user_code', ['payload' => $payload]);
@@ -99,13 +99,14 @@ class GgrGoldApiController extends Controller
 
         $providerBalance = floor((((float) $user->game_balance) / $rate) * 100) / 100;
 
-        Log::info("💰 [Nexus user_balance OUT] User=[{$userCode}] SiteCoins=[{$user->game_balance}] Rate=[{$rate}] => SentToSlot=[{$providerBalance} SC]");
+        Log::info("💰 [Nexus user_balance OUT] User=[{$userCode}] Balance=[{$user->game_balance} SC] (SentToSlot: {$providerBalance} SC)");
 
         return response()->json([
             'status' => 1,
             'user_balance' => (float) $providerBalance,
         ]);
     }
+
 
     /**
      * B. Process Bet and Win transactions (method: transaction)
@@ -115,7 +116,7 @@ class GgrGoldApiController extends Controller
     {
         $userCode = $payload['user_code'] ?? $payload['user_id'] ?? '';
         $gameType = $payload['game_type'] ?? 'slot';
-        $rate = (float) config('nexus.denomination_rate', 100000);
+        $rate = (float) config('nexus.denomination_rate', 1);
 
         // Extract nested game details object matching game_type (slot, live, SB, MN, FT)
         $gameData = $payload[$gameType] ?? $payload['slot'] ?? $payload['live'] ?? $payload['MN'] ?? $payload['SB'] ?? $payload;
@@ -138,11 +139,11 @@ class GgrGoldApiController extends Controller
             $betMoney = 0.0;
         }
 
-        // Convert provider credits to internal virtual coins
-        $coinsToDebit = (float) round($betMoney * $rate);
-        $coinsToCredit = (float) round($winMoney * $rate);
+        // Convert provider credits to internal SC balance
+        $coinsToDebit = (float) round($betMoney * $rate, 4);
+        $coinsToCredit = (float) round($winMoney * $rate, 4);
 
-        Log::info("🎰 [Nexus transaction IN] User=[{$userCode}] Provider=[{$providerCode}] Game=[{$gameCode}] Type=[{$txnType}] Bet=[{$betMoney} SC -> {$coinsToDebit} Coins] Win=[{$winMoney} SC -> {$coinsToCredit} Coins] TxnId=[{$txnIdV2}]");
+        Log::info("🎰 [Nexus transaction IN] User=[{$userCode}] Provider=[{$providerCode}] Game=[{$gameCode}] Type=[{$txnType}] Bet=[{$betMoney} SC -> {$coinsToDebit} SC] Win=[{$winMoney} SC -> {$coinsToCredit} SC] TxnId=[{$txnIdV2}]");
 
         if (empty($userCode)) {
             Log::warning('⚠️ [Nexus transaction] Missing user_code');
@@ -197,7 +198,7 @@ class GgrGoldApiController extends Controller
 
             // Insufficient funds check
             if ($coinsToDebit > 0 && $currentBalance < $coinsToDebit) {
-                Log::warning("⛔ [Nexus transaction INSUFFICIENT FUNDS] User=[{$userCode}] Balance=[{$currentBalance} Coins] < Bet=[{$coinsToDebit} Coins]");
+                Log::warning("⛔ [Nexus transaction INSUFFICIENT FUNDS] User=[{$userCode}] Balance=[{$currentBalance} SC] < Bet=[{$coinsToDebit} SC]");
 
                 return response()->json([
                     'status' => 0,
@@ -209,9 +210,9 @@ class GgrGoldApiController extends Controller
             $balanceAfter = $currentBalance - $coinsToDebit + $coinsToCredit;
             $user->game_balance = $balanceAfter;
 
-            // Award VIP XP points for wager in Social Casino (100,000 Coins = 1 SC = 10 VIP XP)
+            // Award VIP XP points (1 SC wagered = 10 VIP XP)
             if ($coinsToDebit > 0) {
-                $user->awardVipXp($coinsToDebit / 100000);
+                $user->awardVipXp($coinsToDebit * 10);
             }
 
             $user->save();
@@ -233,7 +234,7 @@ class GgrGoldApiController extends Controller
             // Live Community Wins feed for high multipliers
             if ($coinsToCredit > 0) {
                 $multiplier = $coinsToDebit > 0 ? round($coinsToCredit / $coinsToDebit, 2) : 10.0;
-                if ($winMoney >= 50 || $multiplier >= 5.0) {
+                if ($winMoney >= 10 || $multiplier >= 5.0) {
                     $game = Game::where('game_code', $gameCode)->first();
                     LiveCommunityWin::create([
                         'user_name' => $user->name,
@@ -249,7 +250,7 @@ class GgrGoldApiController extends Controller
 
             $providerBalanceAfter = floor(($balanceAfter / $rate) * 100) / 100;
 
-            Log::info("✅ [Nexus transaction SUCCESS] User=[{$userCode}] Balance: {$balanceBefore} -> {$balanceAfter} Coins (ReturnedToSlot: {$providerBalanceAfter} SC)");
+            Log::info("✅ [Nexus transaction SUCCESS] User=[{$userCode}] Balance: {$balanceBefore} -> {$balanceAfter} SC (ReturnedToSlot: {$providerBalanceAfter} SC)");
 
             return response()->json([
                 'status' => 1,
@@ -265,7 +266,7 @@ class GgrGoldApiController extends Controller
     {
         $transactionId = $payload['transaction_id'] ?? $payload['txn_id_v2'] ?? $payload['tx_id'] ?? null;
         $refundAmount = (float) ($payload['amount'] ?? $payload['refund_amount'] ?? 0);
-        $rate = (float) config('nexus.denomination_rate', 100000);
+        $rate = (float) config('nexus.denomination_rate', 1);
 
         if (! $transactionId) {
             return response()->json(['status' => 0, 'msg' => 'MISSING_TRANSACTION_ID'], 400);
@@ -289,3 +290,4 @@ class GgrGoldApiController extends Controller
         return response()->json(['status' => 1, 'msg' => 'REFUND_RECORDED']);
     }
 }
+

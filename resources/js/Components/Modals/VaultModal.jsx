@@ -69,7 +69,7 @@ export default function VaultModal({ isOpen, onClose }) {
         }
     };
 
-    const formatCoins = (val) => Math.floor(Number(val || 0)).toLocaleString('en-US');
+    const formatCoins = (val) => Number(val || 0).toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
 
     return (
         <div className="nw-topup-backdrop" onClick={e => e.target === e.currentTarget && !processing && onClose()}>
@@ -85,7 +85,7 @@ export default function VaultModal({ isOpen, onClose }) {
                     </div>
                     <div>
                         <h2 className="font-heading font-black text-xl sm:text-2xl text-white">Cyber Vault (Piggy Bank)</h2>
-                        <p className="text-xs text-gray-400">Lock and protect your Coins bankroll from emotional play</p>
+                        <p className="text-xs text-gray-400">Lock and protect your SC bankroll from emotional play</p>
                     </div>
                 </div>
 
@@ -94,17 +94,18 @@ export default function VaultModal({ isOpen, onClose }) {
                     <div className="p-4 rounded-2xl bg-[#1a1329] border border-[#3c2a4e]">
                         <span className="text-[10px] text-gray-400 uppercase font-bold tracking-wider">Playable Wallet</span>
                         <div className="font-heading font-black text-xl text-yellow-300 mt-1">
-                            {formatCoins(user?.game_balance)} <small className="text-xs text-yellow-500 font-mono">Coins</small>
+                            {formatCoins(user?.game_balance)} <small className="text-xs text-yellow-500 font-mono">SC</small>
                         </div>
                     </div>
 
                     <div className="p-4 rounded-2xl bg-cyan-950/30 border border-cyan-500/30">
                         <span className="text-[10px] text-cyan-300 uppercase font-bold tracking-wider">Vault Protected</span>
                         <div className="font-heading font-black text-xl text-cyan-300 mt-1">
-                            {formatCoins(user?.vault_balance)} <small className="text-xs text-cyan-400 font-mono">Coins</small>
+                            {formatCoins(user?.vault_balance)} <small className="text-xs text-cyan-400 font-mono">SC</small>
                         </div>
                     </div>
                 </div>
+
 
                 {/* Tabs */}
                 <div className="flex items-center gap-2 p-1 bg-[#191326] rounded-xl border border-[#352548] mb-5 text-xs font-bold">

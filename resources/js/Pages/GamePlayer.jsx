@@ -162,15 +162,13 @@ export default function GamePlayer({ game, launchUrl, isMock = false, relatedGam
                                     <Coins className="w-3.5 h-3.5 text-yellow-400 animate-pulse" />
                                 </div>
                                 <div className="flex flex-col text-left">
-                                    <div className="flex items-center gap-1.5">
-                                        <span className="text-[9px] uppercase font-bold text-yellow-400/80 leading-none">Coins</span>
-                                        <span className="text-[9px] text-gray-400 font-mono">≈ {((Number(currentBalance) || 0) / 100000).toFixed(2)} SC</span>
-                                    </div>
+                                    <span className="text-[9px] uppercase font-bold text-yellow-400/80 leading-none">Play Wallet</span>
                                     <span className="text-sm font-mono font-black text-white tracking-tight leading-tight">
-                                        {Math.floor(Number(currentBalance)).toLocaleString()}
+                                        {Number(currentBalance || 0).toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })} <small className="text-xs text-yellow-400 font-sans">SC</small>
                                     </span>
                                 </div>
                             </div>
+
 
 
 
