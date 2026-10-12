@@ -28,6 +28,11 @@ class NexusSyncCommand extends Command
      */
     public function handle(NexusGgrService $service): int
     {
+        if (config('gaming.provider') !== 'nexus') {
+            $this->error('Nexus is retired. Use flexrix:sync for the active catalogue.');
+
+            return self::FAILURE;
+        }
         $provider = $this->option('provider');
         $fresh = $this->option('fresh');
 
@@ -67,6 +72,12 @@ class NexusSyncCommand extends Command
                 ['Execution Time', "{$duration}s"],
             ]
         );
+
+        if ($result['errors'] > 0) {
+            $this->error('Synchronization finished with errors. Check the affected provider connection before retrying.');
+
+            return Command::FAILURE;
+        }
 
         $this->info('NexusGGR synchronization completed successfully!');
 

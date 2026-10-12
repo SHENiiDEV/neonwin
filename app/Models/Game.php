@@ -11,6 +11,7 @@ class Game extends Model
     use HasFactory;
 
     protected $fillable = [
+        'integration', 'external_code', 'has_freespins',
         'provider_code',
         'game_code',
         'name',
@@ -20,14 +21,16 @@ class Game extends Model
         'rtp',
         'is_popular',
         'is_featured',
-        'status',
+        'status', 'bet_levels',
     ];
 
     protected $casts = [
+        'has_freespins' => 'boolean',
         'rtp' => 'decimal:2',
         'is_popular' => 'boolean',
         'is_featured' => 'boolean',
         'status' => 'boolean',
+        'bet_levels' => 'array',
     ];
 
     protected static function booted(): void

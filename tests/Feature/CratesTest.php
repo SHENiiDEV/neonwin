@@ -51,11 +51,12 @@ class CratesTest extends TestCase
 
         $crate->refresh();
         $this->assertEquals('opened', $crate->status);
-        $this->assertGreaterThan(0, $crate->reward_sc);
+        $this->assertSame('0.00', $crate->reward_sc);
         $this->assertNotNull($crate->opened_at);
 
         $user->refresh();
-        $this->assertGreaterThan(10.00, $user->game_balance);
+        $this->assertSame('10.00', $user->game_balance);
+        $this->assertSame(0, $user->eur_balance_cents);
     }
 
     public function test_user_cannot_open_same_crate_twice(): void

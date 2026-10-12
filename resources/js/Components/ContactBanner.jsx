@@ -10,7 +10,7 @@ export default function ContactBanner() {
                 <Headphones size={38} strokeWidth={1.5} />
             </div>
             <div className="nw-contact-copy">
-                <span className="nw-eyebrow">24/7 PLAYER ASSISTANCE</span>
+                <span className="nw-eyebrow">PLAYER SUPPORT</span>
                 <h2>A little help? We’re here.</h2>
                 <p>
                     Browse answers in our <Link href="/faq" className="text-purple-300 font-bold hover:underline">Help & FAQ center</Link> or send a message to our support specialists.

@@ -5,9 +5,7 @@ import Header from '../Components/Header';
 import Footer from '../Components/Footer';
 import AuthModal from '../Components/Modals/AuthModal';
 import DepositModal from '../Components/Modals/DepositModal';
-import VipModal from '../Components/Modals/VipModal';
 import CratesModal from '../Components/Modals/CratesModal';
-import VaultModal from '../Components/Modals/VaultModal';
 import TipModal from '../Components/Modals/TipModal';
 
 export default function MainLayout({ children, highlights = [] }) {
@@ -17,11 +15,18 @@ export default function MainLayout({ children, highlights = [] }) {
     const [authModalOpen, setAuthModalOpen] = useState(false);
     const [authMode, setAuthMode] = useState('login');
     const [depositModalOpen, setDepositModalOpen] = useState(false);
-    const [vipModalOpen, setVipModalOpen] = useState(false);
     const [cratesModalOpen, setCratesModalOpen] = useState(false);
-    const [vaultModalOpen, setVaultModalOpen] = useState(false);
     const [tipModalOpen, setTipModalOpen] = useState(false);
     const [searchQuery, setSearchQuery] = useState(filters?.search || '');
+
+    useEffect(() => {
+        const query = new URLSearchParams(window.location.search);
+        if (query.has('cashier')) {
+            if (auth?.user) setDepositModalOpen(true);
+            else { setAuthMode('login'); setAuthModalOpen(true); }
+        }
+        if (query.has('login') && !auth?.user) { setAuthMode('login'); setAuthModalOpen(true); }
+    }, [auth?.user?.id]);
 
     useEffect(() => { 
         setSearchQuery(filters?.search || ''); 
@@ -33,9 +38,7 @@ export default function MainLayout({ children, highlights = [] }) {
                 setSidebarOpen(false); 
                 setAuthModalOpen(false); 
                 setDepositModalOpen(false); 
-                setVipModalOpen(false);
                 setCratesModalOpen(false);
-                setVaultModalOpen(false);
                 setTipModalOpen(false);
             }
         };
@@ -58,13 +61,14 @@ export default function MainLayout({ children, highlights = [] }) {
     const openAuth = (mode = 'register') => { setAuthMode(mode); setAuthModalOpen(true); };
     const openDeposit = () => auth?.user ? setDepositModalOpen(true) : openAuth();
     const openCrates = () => auth?.user ? setCratesModalOpen(true) : openAuth();
-    const openVault = () => auth?.user ? setVaultModalOpen(true) : openAuth();
+    const openVault = () => auth?.user ? router.visit('/profile?section=vault') : openAuth();
+    const openVip = () => { setSidebarOpen(false); router.visit('/vip'); };
     const openTip = () => auth?.user ? setTipModalOpen(true) : openAuth();
 
     const actions = { 
         openAuth, 
         openDeposit, 
-        openVip: () => setVipModalOpen(true), 
+        openVip,
         openCrates,
         openVault,
         openTip,
@@ -97,7 +101,7 @@ export default function MainLayout({ children, highlights = [] }) {
                 isOpen={sidebarOpen} 
                 setIsOpen={setSidebarOpen}
                 onOpenDeposit={openDeposit}
-                onOpenVip={() => setVipModalOpen(true)}
+                onOpenVip={openVip}
                 onOpenCrates={openCrates}
                 onOpenVault={openVault}
                 onOpenTip={openTip}
@@ -119,7 +123,7 @@ export default function MainLayout({ children, highlights = [] }) {
                     onToggleSidebar={() => setSidebarOpen(!sidebarOpen)}
                     onOpenAuth={openAuth}
                     onOpenDeposit={openDeposit}
-                    onOpenVip={() => setVipModalOpen(true)}
+                    onOpenVip={openVip}
                     onOpenCrates={openCrates}
                     onOpenVault={openVault}
                     onOpenTip={openTip}
@@ -149,19 +153,9 @@ export default function MainLayout({ children, highlights = [] }) {
                 onClose={() => setDepositModalOpen(false)} 
             />
 
-            <VipModal 
-                isOpen={vipModalOpen} 
-                onClose={() => setVipModalOpen(false)} 
-            />
-
             <CratesModal
                 isOpen={cratesModalOpen}
                 onClose={() => setCratesModalOpen(false)}
-            />
-
-            <VaultModal
-                isOpen={vaultModalOpen}
-                onClose={() => setVaultModalOpen(false)}
             />
 
             <TipModal

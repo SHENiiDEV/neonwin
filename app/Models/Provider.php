@@ -10,14 +10,16 @@ class Provider extends Model
     use HasFactory;
 
     protected $fillable = [
+        'integration', 'external_code',
         'code',
         'name',
         'logo_url',
-        'status',
+        'status', 'type', 'synced_at',
     ];
 
     protected $casts = [
         'status' => 'boolean',
+        'synced_at' => 'datetime',
     ];
 
     public function games()

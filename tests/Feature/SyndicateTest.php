@@ -41,7 +41,7 @@ class SyndicateTest extends TestCase
         ]);
     }
 
-    public function test_registration_with_referral_code_rewards_referrer_and_creates_crate(): void
+    public function test_registration_preserves_referral_without_minting_money(): void
     {
         $referrer = User::factory()->create([
             'referral_code' => 'NW-REF-HERO',
@@ -67,7 +67,8 @@ class SyndicateTest extends TestCase
         $response->assertSessionHasNoErrors();
 
         $referrer->refresh();
-        $this->assertEquals(10.50, $referrer->game_balance);
+        $this->assertSame('10.00', $referrer->game_balance);
+        $this->assertSame(0, $referrer->eur_balance_cents);
 
         $newPlayer = User::where('email', 'recruit@example.com')->first();
         $this->assertNotNull($newPlayer);

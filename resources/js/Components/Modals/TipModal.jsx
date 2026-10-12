@@ -58,7 +58,7 @@ export default function TipModal({ isOpen, onClose }) {
                     </div>
                     <div>
                         <h2 className="font-heading font-black text-xl sm:text-2xl text-white">Player-to-Player Tip</h2>
-                        <p className="text-xs text-gray-400">Instantly transfer SC to a friend (3% platform fee)</p>
+                        <p className="text-xs text-gray-400">Instantly transfer EUR to a friend (3% platform fee)</p>
                     </div>
                 </div>
 
@@ -90,8 +90,8 @@ export default function TipModal({ isOpen, onClose }) {
 
                     <div>
                         <div className="flex items-center justify-between mb-1.5">
-                            <label className="text-xs font-bold text-gray-300">Amount to Send (SC)</label>
-                            <span className="text-[10px] text-gray-400">Available: {Number(user?.game_balance || 0).toFixed(2)} SC</span>
+                            <label className="text-xs font-bold text-gray-300">Amount to Send (EUR)</label>
+                            <span className="text-[10px] text-gray-400">Available: {Number(user?.game_balance || 0).toFixed(2)} EUR</span>
                         </div>
                         <input
                             type="number"
@@ -123,15 +123,15 @@ export default function TipModal({ isOpen, onClose }) {
                         <div className="p-3.5 rounded-2xl bg-[#1a1329] border border-[#3b294d] text-xs space-y-1.5 font-mono">
                             <div className="flex justify-between text-gray-400">
                                 <span>Tip Amount:</span>
-                                <span className="text-white">{numAmount.toFixed(2)} SC</span>
+                                <span className="text-white">{numAmount.toFixed(2)} EUR</span>
                             </div>
                             <div className="flex justify-between text-gray-400">
                                 <span className="flex items-center gap-1">Commission (3%):</span>
-                                <span className="text-pink-400">-{fee.toFixed(2)} SC</span>
+                                <span className="text-pink-400">-{fee.toFixed(2)} EUR</span>
                             </div>
                             <div className="border-t border-white/5 pt-1.5 flex justify-between font-bold text-emerald-400 text-sm">
                                 <span>Delivered to Player:</span>
-                                <span>{netDelivered.toFixed(2)} SC</span>
+                                <span>{netDelivered.toFixed(2)} EUR</span>
                             </div>
                         </div>
                     )}

@@ -3,477 +3,197 @@
 namespace App\Services;
 
 use App\Models\Game;
+use App\Models\GameSession;
 use App\Models\Provider;
 use App\Models\User;
+use Illuminate\Http\Client\ConnectionException;
+use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\Http;
-use Illuminate\Support\Facades\Log;
+use Illuminate\Support\Sleep;
 use Illuminate\Support\Str;
 
 class NexusGgrService
 {
-    protected string $baseUrl;
-
-    protected string $agentCode;
-
-    protected string $agentToken;
-
-    protected string $agentSecret;
-
-    protected bool $mockMode;
-
-    protected string $lobbyUrl;
-
-    public function __construct()
+    public function request(string $method, array $payload = []): array
     {
-        $this->baseUrl = config('nexus.base_url', 'https://api.nexusggr.eu');
-        $this->agentCode = config('nexus.agent_code', 'neonwin');
-        $this->agentToken = config('nexus.agent_token', '87f3f75c9501543d36bb0ebfcb473a72');
-        $this->agentSecret = config('nexus.agent_secret', '5562754eb33e45937673a6bacdd8be9d');
-        $this->mockMode = (bool) config('nexus.mock_mode', false);
-        $this->lobbyUrl = config('nexus.lobby_url', config('app.url', 'https://neonwin.co.uk'));
-    }
-
-    /**
-     * Send standard POST request to Nexus API
-     */
-    protected function post(array $payload): ?array
-    {
-        $body = array_merge([
-            'agent_code' => $this->agentCode,
-            'agent_token' => $this->agentToken,
-        ], $payload);
-
-        try {
-            $response = Http::timeout(15)
-                ->withHeaders([
-                    'Accept' => 'application/json',
-                    'Content-Type' => 'application/json',
-                ])
-                ->post($this->baseUrl, $body);
-
-            if ($response->successful()) {
-                return $response->json();
-            }
-
-            Log::warning('Nexus API response error', [
-                'status' => $response->status(),
-                'body' => $response->body(),
-                'payload' => $payload,
-            ]);
-        } catch (\Exception $e) {
-            Log::error('Nexus API connection exception: '.$e->getMessage());
+        $agent = (string) config('nexus.agent_code');
+        $token = (string) config('nexus.agent_token');
+        if ($agent === '' || $token === '') {
+            return ['status' => 0, 'code' => 0, 'msg' => 'Nexus credentials are not configured.', 'unknown' => false];
         }
+        $interval = match ($method) {
+            'provider_list', 'game_list', 'game_list_v2' => 1,
+            'get_game_log' => 60,
+            'agent_statistics' => 5,
+            default => 0,
+        };
+        $limitMethod = $method === 'game_list_v2' ? 'game_list' : $method;
+        if ($interval && ! Cache::add('nexus:limit:'.hash('sha256', $agent).':'.$limitMethod, true, $interval)) {
+            return ['status' => 0, 'code' => 7770429, 'msg' => 'Rate limit reached. Try again later.', 'unknown' => false];
+        }
+        try {
+            $response = Http::withOptions(config('nexus.force_ipv4') ? ['force_ip_resolve' => 'v4'] : [])->asJson()->acceptJson()->connectTimeout(3)->timeout(12)->post(config('nexus.base_url'), array_merge($payload, [
+                'method' => $method, 'agent_code' => $agent, 'agent_token' => $token,
+            ]));
+            $result = $response->json();
+            if ($response->status() === 403 && is_array($result) && ($result['code'] ?? null) === 'INVALID_IP') {
+                return ['status' => 0, 'code' => 0, 'msg' => 'This server IP is not whitelisted in Nexus. Add it in the API panel.', 'unknown' => false];
+            }
+            if (! $response->successful() || ! is_array($result) || ! isset($result['status'], $result['code'])) {
+                return ['status' => 0, 'code' => 0, 'msg' => 'Nexus response could not be confirmed. Reconciliation required.', 'unknown' => true];
+            }
+            $result = array_intersect_key($result, array_flip(['status', 'code', 'msg', 'providers', 'games', 'launch_url', 'token', 'fc_code', 'agent', 'user', 'users', 'agent_balance', 'history_url', 'slot', 'live', 'SB', 'total_count', 'page', 'perPage', 'bonus_id', 'tour_id', 'user_code', 'provider_code', 'game_code', 'max_bet', 'amount', 'bet_level', 'bet', 'total_bet', 'real_win', 'spin_count', 'expiration_time', 'rest_count', 'total_win', 'canceled_money']));
+            if ($method !== 'game_launch') {
+                unset($result['token'], $result['fc_code'], $result['launch_url']);
+            }
+            $result['msg'] = Str::limit(str_replace(array_filter([$agent, $token, (string) config('nexus.agent_secret')]), '[redacted]', (string) ($result['msg'] ?? 'Nexus request failed.')), 300);
+            $result['unknown'] = in_array((int) $result['code'], [7770500, 7770502, 7770024, 7770026], true);
 
-        return null;
+            return $result;
+        } catch (ConnectionException $exception) {
+            return ['status' => 0, 'code' => 0, 'msg' => 'Nexus did not respond. Reconciliation required.', 'unknown' => true];
+        }
     }
 
-    /**
-     * 1. Fetch Providers list (method: provider_list)
-     */
+    public static function successful(array $result): bool
+    {
+        return (int) ($result['status'] ?? 0) === 1 && (int) ($result['code'] ?? 0) === 7777777;
+    }
+
     public function fetchProviders(): array
     {
-        $response = $this->post([
-            'method' => 'provider_list',
-        ]);
+        $result = $this->request('provider_list');
 
-        if ($response && isset($response['providers']) && is_array($response['providers'])) {
-            return $response['providers'];
-        }
-
-        if ($response && isset($response['data']) && is_array($response['data'])) {
-            return $response['data'];
-        }
-
-        // Official Social Casino Provider List fallback
-        return [
-            ['code' => 'PRAGMATIC', 'name' => 'Pragmatic Slot', 'type' => 'slot', 'status' => 1],
-            ['code' => 'PP_LIVE_PRO', 'name' => 'Pragmatic Play Live', 'type' => 'live', 'status' => 1],
-            ['code' => 'PGSOFT', 'name' => 'PGSoft', 'type' => 'slot', 'status' => 1],
-            ['code' => 'HABANERO', 'name' => 'Habanero', 'type' => 'slot', 'status' => 1],
-            ['code' => 'BOOONGO', 'name' => 'Booongo', 'type' => 'slot', 'status' => 1],
-            ['code' => 'PLAYSON', 'name' => 'Playson', 'type' => 'slot', 'status' => 1],
-            ['code' => 'CQ9', 'name' => 'CQ9', 'type' => 'slot', 'status' => 1],
-            ['code' => 'EVOPLAY', 'name' => 'Evoplay', 'type' => 'slot', 'status' => 1],
-            ['code' => 'TOPTREND', 'name' => 'TopTrend', 'type' => 'slot', 'status' => 1],
-            ['code' => 'DREAMTECH', 'name' => 'DreamTech', 'type' => 'slot', 'status' => 1],
-            ['code' => 'SPRIBE', 'name' => 'Spribe', 'type' => 'MN', 'status' => 1],
-            ['code' => 'HACKSAW', 'name' => 'Hacksaw', 'type' => 'slot', 'status' => 1],
-            ['code' => 'EVOLUTION', 'name' => 'Evolution Live', 'type' => 'live', 'status' => 1],
-            ['code' => 'SPORTSBOOK', 'name' => 'Nexustrike', 'type' => 'SB', 'status' => 1],
-            ['code' => 'FASTSPIN', 'name' => 'FastSpin', 'type' => 'slot', 'status' => 1],
-            ['code' => 'FISHHUNTER', 'name' => 'Fish Hunter', 'type' => 'FT', 'status' => 1],
-        ];
+        return self::successful($result) ? ($result['providers'] ?? []) : [];
     }
 
-    /**
-     * 2. Fetch Game List for a specific provider (supports game_list with working banner URLs)
-     */
     public function fetchGameList(string $providerCode): array
     {
-        // Always try standard game_list first as it includes direct working CDN banner URLs
-        $response = $this->post([
-            'method' => 'game_list',
-            'provider_code' => strtoupper($providerCode),
-        ]);
+        $method = in_array($providerCode, ['PRAGMATIC', 'PGSOFT', 'REELKINGDOM', 'FATPANDA', 'HABANERO', 'CQ9'], true) ? 'game_list_v2' : 'game_list';
+        $result = $this->request($method, ['provider_code' => $providerCode]);
 
-        if ($response) {
-            if (isset($response['games']) && is_array($response['games'])) {
-                return $response['games'];
-            }
-            if (isset($response['data']) && is_array($response['data'])) {
-                return isset($response['data']['games']) && is_array($response['data']['games']) ? $response['data']['games'] : $response['data'];
-            }
-            if (isset($response['game_list']) && is_array($response['game_list'])) {
-                return $response['game_list'];
-            }
-            if (isset($response['list']) && is_array($response['list'])) {
-                return $response['list'];
-            }
-        }
-
-        // Secondary fallback to game_list_v2 if provider requires v2
-        $v2Resp = $this->post([
-            'method' => 'game_list_v2',
-            'provider_code' => strtoupper($providerCode),
-        ]);
-
-        if ($v2Resp) {
-            if (isset($v2Resp['games']) && is_array($v2Resp['games'])) {
-                return $v2Resp['games'];
-            }
-            if (isset($v2Resp['data']) && is_array($v2Resp['data'])) {
-                return isset($v2Resp['data']['games']) && is_array($v2Resp['data']['games']) ? $v2Resp['data']['games'] : $v2Resp['data'];
-            }
-        }
-
-        return [];
+        return self::successful($result) ? ($result['games'] ?? []) : [];
     }
 
-    /**
-     * 3. Multilingual game name parser
-     */
     public function parseGameName(mixed $rawName, string $gameCode = ''): string
     {
-        if (is_array($rawName)) {
-            return $rawName['en'] ?? $rawName['hi'] ?? $rawName['vi'] ?? reset($rawName) ?? ($gameCode ?: 'Untitled Game');
-        }
-
         if (is_string($rawName)) {
             $decoded = json_decode($rawName, true);
-            if (is_array($decoded)) {
-                return $decoded['en'] ?? reset($decoded) ?? ($gameCode ?: 'Untitled Game');
-            }
-
-            return trim($rawName) ?: ($gameCode ?: 'Untitled Game');
+            $rawName = is_array($decoded) ? $decoded : $rawName;
+        }
+        if (is_array($rawName)) {
+            $names = array_filter($rawName, fn ($name) => is_string($name) && trim($name) !== '');
+            $rawName = $names['en'] ?? (reset($names) ?: $gameCode);
         }
 
-        return $gameCode ?: 'Untitled Game';
+        return is_string($rawName) && trim($rawName) !== '' ? trim($rawName) : $gameCode;
     }
 
-    /**
-     * 4. Smart CDN Banner Mapper (No placeholder stock photos)
-     */
     public function constructCdnBannerUrl(string $providerCode, string $gameCode, ?string $originalBanner = null): string
     {
-        if (! empty($originalBanner)) {
-            $originalBanner = trim($originalBanner);
-            if (filter_var($originalBanner, FILTER_VALIDATE_URL)) {
-                return $originalBanner;
-            }
-            if (str_starts_with($originalBanner, '//')) {
-                return 'https:'.$originalBanner;
-            }
-            if (str_starts_with($originalBanner, '/')) {
-                return rtrim($this->baseUrl, '/').$originalBanner;
-            }
-
-            return rtrim($this->baseUrl, '/').'/'.$originalBanner;
-        }
-
-        $provider = strtoupper(trim($providerCode));
-        $code = trim($gameCode);
-
-        switch ($provider) {
-            case 'PRAGMATIC':
-            case 'PRAGMATICPLAY':
-            case 'REELKINGDOM':
-            case 'PP_LIVE_PRO':
-                return "https://assets.bd34fgabh.com/apps/game-assets/{$code}/{$code}_800x600_NB.avif";
-
-            case 'PGSOFT':
-                return "https://assets.bd34fgabh.com/img/pgsoft/{$code}.jpg";
-
-            case 'HACKSAW':
-                return "https://www-live.hacksawgaming.com/casino_thumbnails/{$code}.jpg";
-
-            case 'SPRIBE':
-                return "https://spribe.co/assets/games/{$code}/thumbnail.png";
-
-            default:
-                return "https://assets.bd34fgabh.com/apps/game-assets/{$code}/{$code}_800x600_NB.avif";
-        }
+        return $originalBanner && filter_var($originalBanner, FILTER_VALIDATE_URL) && in_array(parse_url($originalBanner, PHP_URL_SCHEME), ['https', 'http'], true) ? $originalBanner : '';
     }
 
-    /**
-     * 5. Smart Category classifier
-     */
     public function categorizeGame(?string $gameType, string $gameName, string $providerCode): string
     {
-        $text = strtolower($gameType.' '.$gameName.' '.$providerCode);
-
-        if (Str::contains($text, ['pp_live_pro', 'evolution', 'baccarat', 'blackjack', 'roulette', 'monopoly', 'crazy time', 'dealer', 'live'])) {
-            return 'live';
-        }
-
-        if (Str::contains($text, ['aviator', 'crash', 'plinko', 'mines', 'dice', 'hilo', 'rocket', 'limbo', 'spribe', 'jetx', 'mn'])) {
-            return 'crash';
-        }
-
-        if (Str::contains($text, ['fish', 'fishing', 'hunter', 'catch', 'ocean', 'deep', 'aquarium', 'ft', 'fishhunter'])) {
-            return 'fishing';
-        }
-
-        if (Str::contains($text, ['football', 'fifa', 'counter-strike', 'csgo', 'dota', 'league', 'stadium', 'cup', 'tennis', 'basketball', 'sportsbook', 'sb'])) {
-            return 'sports';
-        }
-
-        return 'slots';
+        return match ($gameType) {
+            'live' => 'live', 'SB' => 'sports', 'MN' => 'crash', 'FH' => 'fishing', default => 'slots',
+        };
     }
 
-    /**
-     * 6. Game Launch (method: game_launch)
-     */
     public function launchGame(User $user, string $gameCode, string $providerCode, string $lang = 'en', ?int $rtp = null): array
     {
-        $payload = [
-            'method' => 'game_launch',
-            'user_code' => (string) ($user->user_code ?: 'NW'.$user->id),
-            'provider_code' => strtoupper(trim($providerCode)),
-            'game_code' => trim($gameCode),
-            'lang' => $lang ?: 'en',
-            'lobby_url' => $this->lobbyUrl,
-        ];
-
-        // For live games where game_code can be empty, remove empty game_code field
-        if (empty($payload['game_code'])) {
-            unset($payload['game_code']);
+        if (! config('nexus.eur_agent_confirmed')) {
+            return ['status' => 0, 'message' => 'Games are unavailable while the EUR wallet connection is being configured.'];
         }
-
-        if ($rtp !== null) {
-            $payload['rtp'] = (int) $rtp;
+        if (preg_match('/\s/', $user->user_code) || ! $user->user_code) {
+            return ['status' => 0, 'message' => 'Your player code needs support before launch.'];
         }
-
-        if (! $this->mockMode) {
-            $response = $this->post($payload);
-            Log::info('Nexus game_launch execution', [
-                'payload' => $payload,
-                'response' => $response,
-            ]);
-
-            if ($response) {
-                $launchUrl = $response['launch_url']
-                    ?? $response['data']['launch_url']
-                    ?? $response['url']
-                    ?? $response['data']['url']
-                    ?? null;
-
-                if (! empty($launchUrl)) {
-                    return [
-                        'status' => 1,
-                        'launch_url' => $launchUrl,
-                        'message' => 'Game launched successfully',
-                    ];
-                }
-
-                if (isset($response['msg'])) {
-                    Log::warning("Nexus game_launch returned status 0 / error: {$response['msg']}", [
-                        'user' => $user->user_code,
-                        'provider' => $providerCode,
-                        'game' => $gameCode,
-                        'response' => $response,
-                    ]);
-                }
-            }
+        $payload = ['user_code' => $user->user_code, 'provider_code' => $providerCode, 'game_code' => $gameCode, 'lang' => 'en'];
+        if (config('nexus.lobby_url')) {
+            $payload['lobby_url'] = config('nexus.lobby_url');
         }
-
-        // Mock / Interactive Demo frame fallback for testing before IP whitelist
-        $demoUrl = route('game.mock-frame', [
-            'provider' => strtolower($providerCode),
-            'game' => $gameCode ?: 'live',
-            'user' => $user->user_code,
+        $result = $this->request('game_launch', $payload);
+        $url = $result['launch_url'] ?? '';
+        if (! self::successful($result) || ! is_string($url) || ! filter_var($url, FILTER_VALIDATE_URL) || parse_url($url, PHP_URL_SCHEME) !== 'https' || empty($result['token'])) {
+            return ['status' => 0, 'message' => $result['msg'] ?? 'Game launch could not be confirmed. Please try again later.'];
+        }
+        GameSession::create([
+            'user_id' => $user->id, 'provider_code' => $providerCode, 'game_code' => $gameCode,
+            'token' => $result['token'], 'token_hash' => hash('sha256', $result['token']), 'fc_code' => $result['fc_code'] ?? null,
         ]);
 
-        return [
-            'status' => 1,
-            'launch_url' => $demoUrl,
-            'is_mock' => true,
-            'message' => 'Launched in interactive simulation mode',
-        ];
+        return ['status' => 1, 'launch_url' => $url, 'message' => 'Game launched.'];
     }
 
-    /**
-     * 7. Agent and User balance check (method: money_info)
-     */
-    public function getMoneyInfo(?string $userCode = null, bool $allUsers = false): ?array
+    public function getMoneyInfo(?string $userCode = null, bool $allUsers = false): array
     {
-        $payload = ['method' => 'money_info'];
-        if ($allUsers) {
-            $payload['all_users'] = true;
-        } elseif (! empty($userCode)) {
-            $payload['user_code'] = $userCode;
-        }
-
-        return $this->post($payload);
+        return $this->request('money_info', $allUsers ? ['all_users' => true] : ($userCode ? ['user_code' => $userCode] : []));
     }
 
-    /**
-     * 8. Game log history (method: get_game_log)
-     */
-    public function getGameLog(?string $userCode = null, string $gameType = 'slot', ?string $start = null, ?string $end = null, int $page = 0, int $perPage = 1000): ?array
+    public function getGameLog(?string $userCode = null, string $gameType = 'slot', ?string $start = null, ?string $end = null, int $page = 0, int $perPage = 1000): array
     {
-        $payload = [
-            'method' => 'get_game_log',
-            'game_type' => $gameType,
-            'page' => $page,
-            'perPage' => min($perPage, 1000000),
-        ];
-
-        if (! empty($userCode)) {
-            $payload['user_code'] = $userCode;
-        }
-        if (! empty($start)) {
-            $payload['start'] = $start;
-        }
-        if (! empty($end)) {
-            $payload['end'] = $end;
+        if (! in_array($gameType, ['slot', 'live', 'SB'], true) || ! $start || ! $end || $page < 0 || $perPage < 1 || $perPage > 1000000) {
+            return ['status' => 0, 'code' => 7770400, 'msg' => 'Select a valid type, date range and page.'];
         }
 
-        return $this->post($payload);
+        return $this->request('get_game_log', array_filter(['user_code' => $userCode, 'game_type' => $gameType, 'start' => $start, 'end' => $end, 'page' => $page, 'perPage' => $perPage], fn ($value) => $value !== null));
     }
 
-    /**
-     * 9. In-Game History URL (method: get_game_history, Pragmatic Slot only)
-     */
-    public function getGameHistory(string $userCode, string $gameCode, string $providerCode = 'PRAGMATIC'): ?array
+    public function getGameHistory(string $userCode, string $gameCode, string $providerCode = 'PRAGMATIC'): array
     {
-        return $this->post([
-            'method' => 'get_game_history',
-            'user_code' => $userCode,
-            'provider_code' => strtoupper($providerCode),
-            'game_code' => $gameCode,
-        ]);
+        if ($providerCode !== 'PRAGMATIC') {
+            return ['status' => 0, 'code' => 7770407, 'msg' => 'Game history is available for PRAGMATIC only.'];
+        }
+
+        return $this->request('get_game_history', ['user_code' => $userCode, 'provider_code' => $providerCode, 'game_code' => $gameCode]);
     }
 
-    /**
-     * 10. Full Synchronization Routine
-     */
     public function syncGames(?string $targetProvider = null, ?callable $logger = null): array
     {
-        $log = $logger ?? function (string $msg, string $type = 'info') {
-            Log::info("[NexusSync] {$msg}");
-        };
+        $result = $this->request('provider_list');
+        $stats = ['providers_synced' => 0, 'games_created' => 0, 'games_updated' => 0, 'errors' => 0];
+        if (! self::successful($result)) {
+            $stats['errors']++;
+            if ($logger) {
+                $logger($result['msg'], 'error');
+            }
 
-        $log("Fetching provider list from Nexus API: {$this->baseUrl} (Agent: {$this->agentCode})...");
-        $providerResponse = $this->post(['method' => 'provider_list']);
-
-        if (! $providerResponse) {
-            $log("Failed to connect to NexusGGR API at {$this->baseUrl}. Check network or credentials.", 'error');
-        } elseif (isset($providerResponse['status']) && (int) $providerResponse['status'] !== 1) {
-            $msg = $providerResponse['msg'] ?? $providerResponse['message'] ?? 'Unknown API error';
-            $log("NexusGGR API returned error for provider_list: [{$msg}]. Check if server IP is whitelisted in NexusGGR dashboard.", 'warn');
+            return $stats;
         }
-
-        $providers = $this->fetchProviders();
-        $log('Providers available for sync: '.count($providers));
-
-        $stats = [
-            'providers_synced' => 0,
-            'games_created' => 0,
-            'games_updated' => 0,
-            'errors' => 0,
-        ];
-
-        foreach ($providers as $pData) {
-            $code = is_array($pData) ? ($pData['code'] ?? $pData['provider_code'] ?? '') : (string) $pData;
-            $name = is_array($pData) ? ($pData['name'] ?? $pData['provider_name'] ?? $code) : (string) $code;
-
-            if (empty($code)) {
-                continue;
-            }
-
-            $code = strtoupper(trim($code));
-
-            if ($targetProvider && strtoupper($targetProvider) !== $code) {
-                continue;
-            }
-
-            Provider::updateOrCreate(
-                ['code' => $code],
-                ['name' => $name, 'status' => true]
-            );
+        $first = true;
+        foreach ($result['providers'] ?? [] as $item) {
+            $code = $item['code'];
+            Provider::updateOrCreate(['code' => $code], ['name' => $item['name'], 'type' => $item['type'], 'status' => (int) $item['status'] === 1, 'synced_at' => now()]);
             $stats['providers_synced']++;
-
-            $log("Fetching games for provider [{$code}] ({$name})...");
-            $games = $this->fetchGameList($code);
-
-            if (empty($games)) {
-                $log("  -> 0 games returned for [{$code}]. Check if provider is enabled for agent in Nexus dashboard.", 'warn');
+            if ($targetProvider && $targetProvider !== $code) {
+                continue;
+            }
+            if (! $first) {
+                Sleep::for(1)->seconds();
+            }
+            $first = false;
+            $method = in_array($code, ['PRAGMATIC', 'PGSOFT', 'REELKINGDOM', 'FATPANDA', 'HABANERO', 'CQ9'], true) ? 'game_list_v2' : 'game_list';
+            $games = $this->request($method, ['provider_code' => $code]);
+            if (! self::successful($games)) {
+                $stats['errors']++;
 
                 continue;
             }
-
-            $log('  -> Received '.count($games)." games for [{$code}]. Saving...");
-
-            foreach ($games as $gData) {
-                try {
-                    $gameCode = $gData['game_code'] ?? $gData['code'] ?? '';
-                    if (empty($gameCode)) {
-                        continue;
-                    }
-
-                    $rawName = $gData['game_name'] ?? $gData['name'] ?? $gameCode;
-                    $gameName = $this->parseGameName($rawName, $gameCode);
-                    $gameType = $gData['game_type'] ?? $gData['type'] ?? 'slot';
-                    $rawBanner = $gData['banner']
-                        ?? $gData['image']
-                        ?? $gData['img']
-                        ?? $gData['banner_url']
-                        ?? $gData['icon']
-                        ?? $gData['thumbnail']
-                        ?? $gData['game_banner']
-                        ?? $gData['cover']
-                        ?? $gData['url_thumb']
-                        ?? null;
-                    $bannerUrl = $this->constructCdnBannerUrl($code, $gameCode, $rawBanner);
-                    $category = $this->categorizeGame($gameType, $gameName, $code);
-                    $slug = Str::slug($gameName.'-'.$gameCode);
-
-                    $game = Game::updateOrCreate(
-                        [
-                            'provider_code' => $code,
-                            'game_code' => $gameCode,
-                        ],
-                        [
-                            'name' => $gameName,
-                            'slug' => $slug,
-                            'banner_url' => $bannerUrl,
-                            'category' => $category,
-                            'rtp' => $gData['rtp'] ?? 96.50,
-                            'is_popular' => (bool) ($gData['is_popular'] ?? false),
-                            'is_featured' => (bool) ($gData['is_featured'] ?? false),
-                            'status' => true,
-                        ]
-                    );
-
-                    if ($game->wasRecentlyCreated) {
-                        $stats['games_created']++;
-                    } else {
-                        $stats['games_updated']++;
-                    }
-                } catch (\Exception $e) {
-                    $stats['errors']++;
-                    $log("  -> Error saving game {$code}/{$gameCode}: ".$e->getMessage(), 'error');
-                }
+            foreach ($games['games'] ?? [] as $data) {
+                $gameCode = $data['game_code'];
+                $name = $this->parseGameName($data['game_name'], $gameCode);
+                $game = Game::updateOrCreate(['provider_code' => $code, 'game_code' => $gameCode], [
+                    'name' => $name, 'slug' => Str::slug($name.'-'.$code.'-'.$gameCode),
+                    'banner_url' => $this->constructCdnBannerUrl($code, $gameCode, $data['banner'] ?? null),
+                    'category' => $this->categorizeGame($item['type'], $name, $code),
+                    'rtp' => $data['rtp'] ?? null, 'status' => (int) ($data['status'] ?? 0) === 1,
+                    'bet_levels' => $code === 'PRAGMATIC' ? ($data['bet_levels'] ?? null) : null,
+                ]);
+                $stats[$game->wasRecentlyCreated ? 'games_created' : 'games_updated']++;
+            }
+            if (isset($games['games']) && is_array($games['games'])) {
+                Game::where('provider_code', $code)->whereNotIn('game_code', array_column($games['games'], 'game_code'))->update(['status' => false]);
             }
         }
 

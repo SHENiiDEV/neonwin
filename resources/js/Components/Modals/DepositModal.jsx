@@ -1,258 +1,31 @@
-import React, { useEffect, useRef, useState } from 'react';
-import { usePage, router, Link } from '@inertiajs/react';
-import { X, Check, ArrowRight, Coins, Sparkles, Wallet, Gift, ChevronRight, LoaderCircle, CircleAlert, FlaskConical, Globe, CreditCard } from 'lucide-react';
+import React, { useState } from 'react';
+import { Link, usePage } from '@inertiajs/react';
 import axios from 'axios';
-import { playCoinSound } from '../../utils/soundEffects';
-
-const currencies = [
-    { code: 'EUR', symbol: '€', rate: 1.0, label: 'EUR (€)' },
-    { code: 'USD', symbol: '$', rate: 1.08, label: 'USD ($)' },
-    { code: 'GBP', symbol: '£', rate: 0.85, label: 'GBP (£)' },
-];
-
-const coinPacks = [
-    { basePrice: 10, coins: 5.0, bonusCoins: 0.5, name: 'Neon Spark' },
-    { basePrice: 20, coins: 10.0, bonusCoins: 1.5, name: 'Golden Energy' },
-    { basePrice: 50, coins: 25.0, bonusCoins: 5.0, name: 'Extra Bright', popular: true },
-    { basePrice: 100, coins: 50.0, bonusCoins: 15.0, name: 'High Roller' },
-    { basePrice: 250, coins: 125.0, bonusCoins: 40.0, name: 'The Full Glow' },
-    { basePrice: 500, coins: 250.0, bonusCoins: 100.0, name: 'Cyber Whale' },
-];
-
-function CoinArt({ tier = 0 }) {
-    return <span className={`nw-coin-art nw-coin-tier-${tier % 5}`} aria-hidden="true"><span>✦</span><span>✦</span><span>✦</span></span>;
-}
+import { X, Wallet, ShieldCheck } from 'lucide-react';
 
 export default function DepositModal({ isOpen, onClose }) {
     const { auth } = usePage().props;
-    const user = auth?.user;
-    const [selectedCurrency, setSelectedCurrency] = useState('EUR');
-    const [selectedPrice, setSelectedPrice] = useState(50);
-    const [processing, setProcessing] = useState(null);
-    const [feedback, setFeedback] = useState(null);
-    const [creditedBalance, setCreditedBalance] = useState(null);
-    const [countdownStr, setCountdownStr] = useState('');
-    const requestInFlight = useRef(false);
-    
-    const canClaimDaily = user ? (user.can_claim_daily_bonus !== false) : true;
-
-    useEffect(() => {
-        if (!user?.next_daily_bonus_at || canClaimDaily) {
-            setCountdownStr('');
-            return;
-        }
-
-        const updateTimer = () => {
-            const nextTime = new Date(user.next_daily_bonus_at).getTime();
-            const now = Date.now();
-            const diff = nextTime - now;
-            if (diff <= 0) {
-                setCountdownStr('');
-                return;
-            }
-            const hours = Math.floor(diff / (1000 * 60 * 60));
-            const minutes = Math.floor((diff % (1000 * 60 * 60)) / (1000 * 60));
-            const seconds = Math.floor((diff % (1000 * 60)) / 1000);
-            setCountdownStr(`${hours}h ${minutes}m ${seconds}s`);
-        };
-
-        updateTimer();
-        const interval = setInterval(updateTimer, 1000);
-        return () => clearInterval(interval);
-    }, [user?.next_daily_bonus_at, canClaimDaily]);
-    
-    const curr = currencies.find(c => c.code === selectedCurrency) || currencies[0];
-    const selectedPack = coinPacks.find(pack => pack.basePrice === selectedPrice) || coinPacks[0];
-    const totalCoins = Number((selectedPack.coins + selectedPack.bonusCoins).toFixed(2));
-
-    const getPriceInCurrency = (baseEur) => {
-        const converted = Math.round(baseEur * curr.rate);
-        return `${curr.symbol}${converted.toLocaleString('en-US')}`;
-    };
-
-    useEffect(() => {
-        if (isOpen) setFeedback(null);
-    }, [isOpen]);
-
+    const [selected, setSelected] = useState('eur_25');
+    const [busy, setBusy] = useState(false);
+    const [message, setMessage] = useState('');
+    const [tab, setTab] = useState('deposit');
     if (!isOpen) return null;
-
-    const creditCoins = async (type) => {
-        if (requestInFlight.current) return;
-        if (!user) {
-            setFeedback({ type: 'error', message: 'Log in to claim or add SC to your wallet.' });
-            return;
-        }
-        requestInFlight.current = true;
-        setProcessing(type);
-        setFeedback(null);
-        const creditAmount = type === 'daily' ? 0.02 : totalCoins;
-        const convertedPrice = Math.round(selectedPack.basePrice * curr.rate);
-        try {
-            const response = await axios.post('/deposit', {
-                amount: creditAmount,
-                method: type === 'daily' ? 'daily_sc_bonus' : 'card',
-                pack_name: type === 'daily' ? 'Daily Free 0.02 SC' : selectedPack.name,
-                price: type === 'daily' ? 0 : convertedPrice,
-                currency: selectedCurrency,
-            });
-            if (response.data?.status !== 'success') {
-                throw new Error('The credit was not confirmed. Please try again.');
-            }
-            setCreditedBalance(response.data.new_balance);
-            playCoinSound(user?.sound_enabled !== false);
-            setFeedback({ 
-                type: 'success', 
-                message: type === 'daily' 
-                    ? 'Claimed 0.02 Free Daily SC! Balance updated.' 
-                    : `${creditAmount.toFixed(2)} SC added to your wallet (Rate: 1 EUR = 0.5 SC). Receipt sent to your email.` 
-            });
-            router.reload({ only: ['auth'] });
-        } catch (error) {
-            setFeedback({ type: 'error', message: error.response?.data?.message || error.message || 'Unable to add SC. Please try again.' });
-        } finally {
-            requestInFlight.current = false;
-            setProcessing(null);
-        }
+    const requestPayment = async () => {
+        setBusy(true); setMessage('');
+        try { const response = await axios.post('/deposit', { package: selected }); setMessage(response.data.message); }
+        catch (error) { setMessage(error.response?.data?.message || 'The payment request could not be recorded. Try again later.'); }
+        finally { setBusy(false); }
     };
-
-    return (
-        <div className="nw-topup-backdrop" onClick={event => { if (event.target === event.currentTarget && !processing) onClose(); }}>
-            <section role="dialog" aria-modal="true" aria-labelledby="topup-title" aria-describedby="topup-description" className="nw-topup">
-                <button onClick={onClose} aria-label="Close Get Sweeps Coins dialog" className="nw-topup-close"><X size={18} /></button>
-                <aside className="nw-topup-story">
-                    <div className="nw-topup-story-copy">
-                        <span className="nw-eyebrow"><Sparkles size={13} /> A LITTLE NEON MAGIC</span>
-                        <h2>More SC.<br /><em>More good times.</em></h2>
-                        <p>Pick your pack.<br />1 EUR = 0.5 SC value.</p>
-                        <div className="nw-topup-balance">
-                            <span>Your SC balance</span>
-                            <strong>
-                                <Coins size={20} />{Number(creditedBalance ?? user?.game_balance ?? 0).toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}<small> SC</small>
-                            </strong>
-                        </div>
-                    </div>
-                    <img src="/images/landing/neon-lucky-cat.png" alt="" className="nw-topup-art" />
-                    <span className="nw-topup-story-foot"><span>✦</span> PLAY IN YOUR ELEMENT</span>
-                </aside>
-                <div className="nw-topup-main">
-                    <header className="nw-topup-heading">
-                        <div className="flex items-center justify-between flex-wrap gap-2">
-                            <span className="nw-topup-kicker"><Wallet size={13} /> YOUR PLAY WALLET <span><FlaskConical size={11} /> 1 EUR = 0.5 SC</span></span>
-                            
-                            {/* Currency Selector: EUR / GBP / USD */}
-                            <div className="flex items-center gap-1 bg-[#160f22] p-1 rounded-xl border border-[#3b284c]">
-                                <Globe size={12} className="text-gray-400 ml-1 mr-0.5" />
-                                {currencies.map(c => (
-                                    <button
-                                        key={c.code}
-                                        type="button"
-                                        onClick={() => setSelectedCurrency(c.code)}
-                                        className={`px-2.5 py-1 rounded-lg text-[10px] font-bold transition ${
-                                            selectedCurrency === c.code 
-                                                ? 'bg-purple-600 text-white shadow-sm' 
-                                                : 'text-gray-400 hover:text-white'
-                                        }`}
-                                    >
-                                        {c.code} ({c.symbol})
-                                    </button>
-                                ))}
-                            </div>
-                        </div>
-                        <h2 id="topup-title">Top up your Sweeps Coins.</h2>
-                        <p id="topup-description">Sweeps Coin packs starting from {getPriceInCurrency(10)} (1 EUR = 0.5 SC).</p>
-                    </header>
-
-                    <div className="nw-pack-heading">
-                        <h3>Choose your pack ({selectedCurrency})</h3>
-                        <span>Bonus SC included <Sparkles size={12} /></span>
-                    </div>
-
-                    <div className="nw-pack-grid" role="group" aria-label="Coin packages">
-                        {coinPacks.map((pack, index) => (
-                            <button 
-                                key={pack.basePrice} 
-                                aria-pressed={selectedPrice === pack.basePrice} 
-                                aria-label={`${(pack.coins + pack.bonusCoins).toFixed(2)} SC including ${(pack.bonusCoins).toFixed(2)} bonus, ${getPriceInCurrency(pack.basePrice)}`} 
-                                disabled={!!processing} 
-                                onClick={() => { setSelectedPrice(pack.basePrice); setFeedback(null); }} 
-                                className={`nw-coin-pack ${selectedPrice === pack.basePrice ? 'is-selected' : ''} ${pack.popular ? 'is-popular' : ''}`}
-                            >
-                                {pack.popular && <span className="nw-pack-popular">THE SWEET SPOT</span>}
-                                <span className="nw-pack-check">{selectedPrice === pack.basePrice && <Check size={11} strokeWidth={3} />}</span>
-                                <CoinArt tier={index} />
-                                <span className="nw-pack-name">{pack.name}</span>
-                                <strong>{(pack.coins + pack.bonusCoins).toFixed(1)}<small> SC</small></strong>
-                                <span className="nw-pack-bonus">{(pack.coins).toFixed(1)} <b>+ {(pack.bonusCoins).toFixed(1)} bonus</b></span>
-                                <span className="nw-pack-price">{getPriceInCurrency(pack.basePrice)}<small> {selectedCurrency}</small></span>
-                            </button>
-                        ))}
-                        
-                        {/* Daily Free Claim */}
-                        <div className="nw-daily-pack">
-                            <span className="nw-daily-icon"><Gift size={29} strokeWidth={1.5} /></span>
-                            <span className="nw-pack-name">Your daily free claim</span>
-                            <strong>0.02<small> SC</small></strong>
-                            <span className="nw-daily-caption">
-                                {!canClaimDaily && countdownStr 
-                                    ? `Next claim in: ${countdownStr}` 
-                                    : 'Free 0.02 SC every 24 hours.'}
-                            </span>
-                            <button 
-                                disabled={!!processing || !canClaimDaily} 
-                                onClick={() => creditCoins('daily')}
-                                className={!canClaimDaily ? 'opacity-60 cursor-not-allowed !bg-[#221830] !text-gray-400' : ''}
-                            >
-                                {processing === 'daily' ? (
-                                    <LoaderCircle size={13} className="animate-spin" />
-                                ) : !canClaimDaily ? (
-                                    <>Claimed ({countdownStr || 'Locked'}) <Check size={13} /></>
-                                ) : (
-                                    <>Claim Free 0.02 SC <ArrowRight size={13} /></>
-                                )}
-                            </button>
-                        </div>
-                    </div>
-
-                    <div className="nw-topup-summary">
-                        <div>
-                            <span>You’ll receive</span>
-                            <strong>{totalCoins.toFixed(2)} SC <small>includes {selectedPack.bonusCoins.toFixed(2)} bonus</small></strong>
-                        </div>
-                        <div>
-                            <span>Pack price</span>
-                            <strong>{getPriceInCurrency(selectedPack.basePrice)} <small>{selectedCurrency}</small></strong>
-                        </div>
-                    </div>
-
-                    {feedback && (
-                        <div className={`nw-topup-feedback ${feedback.type}`} role={feedback.type === 'error' ? 'alert' : 'status'}>
-                            {feedback.type === 'success' ? <Check size={17} /> : <CircleAlert size={17} />}
-                            <span>{feedback.message}</span>
-                        </div>
-                    )}
-
-                    <div className="nw-topup-checkout">
-                        <button 
-                            className="nw-button nw-button-purple" 
-                            disabled={!!processing} 
-                            onClick={() => creditCoins('pack')}
-                        >
-                            {processing === 'pack' ? (
-                                <><LoaderCircle size={16} className="animate-spin" /> Adding SC…</>
-                            ) : (
-                                <>Add {totalCoins.toFixed(2)} SC ({getPriceInCurrency(selectedPack.basePrice)}) <ArrowRight size={17} /></>
-                            )}
-                        </button>
-                        <p><FlaskConical size={12} /> Sweeps Coins Wallet • 1 EUR = 0.5 SC</p>
-                    </div>
-
-                    <footer className="nw-topup-foot">
-                        <span>18+ · Play responsibly</span>
-                        <Link href="/sweeps-rules" onClick={onClose}>Sweeps rules <ChevronRight size={12} /></Link>
-                    </footer>
-                </div>
-            </section>
-        </div>
-    );
+    const withdrawal = tab === 'withdraw' && auth?.user?.kyc_approved;
+    return <div className="fixed inset-0 z-[100] bg-black/75 backdrop-blur-sm flex items-center justify-center p-4" onClick={onClose}>
+        <section role="dialog" aria-modal="true" aria-labelledby="cashier-title" className="w-full max-w-lg max-h-[90vh] overflow-y-auto rounded-3xl border border-[#3b324c] bg-[#14161f] shadow-2xl" onClick={e => e.stopPropagation()}>
+            <div className="p-6 sm:p-8 border-b border-white/5 flex justify-between gap-4"><div><span className="nw-eyebrow text-purple-300">YOUR EURO WALLET</span><h2 id="cashier-title" className="text-3xl font-bold mt-2">Cashier</h2></div><button onClick={onClose} className="nw-icon-button self-start" aria-label="Close cashier"><X size={20} /></button></div>
+            <div className="p-6 sm:p-8 flex flex-col gap-6"><div className="flex justify-between items-center"><span className="text-gray-400 text-sm">Available balance</span><strong className="text-2xl tabular-nums">€{Number(auth?.user?.game_balance || 0).toFixed(2)}</strong></div>
+                <div className="flex gap-2"><button className={`nw-button ${!withdrawal ? 'nw-button-purple' : 'bg-white/5'}`} onClick={() => { setTab('deposit'); setMessage(''); }}>Deposit</button>{auth?.user?.kyc_approved && <button className={`nw-button ${withdrawal ? 'nw-button-purple' : 'bg-white/5'}`} onClick={() => { setTab('withdraw'); setMessage(''); }}>Withdraw</button>}</div>
+                {withdrawal ? <div className="rounded-2xl border border-purple-400/20 bg-purple-500/5 p-6 flex flex-col gap-3"><ShieldCheck className="text-emerald-300" /><h3 className="text-xl font-bold">Withdrawals are coming soon</h3><p className="text-gray-400 text-sm">Your identity is verified. Payouts are not available yet. Your balance remains available in your wallet.</p></div> : <><div className="grid grid-cols-2 gap-3">{[10,25,50,100].map(amount => <button key={amount} onClick={() => setSelected(`eur_${amount}`)} aria-pressed={selected === `eur_${amount}`} className={`rounded-xl p-5 border text-left ${selected === `eur_${amount}` ? 'border-purple-400 bg-purple-500/10' : 'border-white/10 bg-white/[0.02]'}`}><span className="text-2xl font-bold">€{amount}</span><span className="block text-xs text-gray-400 mt-1">EUR deposit</span></button>)}</div><div className="text-sm text-amber-200 bg-amber-300/5 border border-amber-300/15 rounded-xl p-4">Payments are currently unavailable. You can record a request; no payment will be taken and no funds will be added.</div><button disabled={busy} onClick={requestPayment} className="nw-button nw-button-purple"><Wallet size={16} />{busy ? 'Recording request…' : 'Record deposit request'}</button></>}
+                {message && <p role="status" className="text-sm text-gray-300 break-words">{message}</p>}
+                <Link href="/profile?section=verification" onClick={onClose} className="text-xs text-purple-300 flex items-center gap-2"><ShieldCheck size={14} />Identity verification · {auth?.user?.kyc_approved ? 'Approved' : 'Review required'}</Link>
+            </div>
+        </section>
+    </div>;
 }
-

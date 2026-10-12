@@ -4,7 +4,6 @@ namespace App\Http\Controllers;
 
 use App\Models\UserCrate;
 use Illuminate\Http\JsonResponse;
-use Illuminate\Support\Arr;
 use Illuminate\Support\Facades\Auth;
 
 class CrateController extends Controller
@@ -46,33 +45,8 @@ class CrateController extends Controller
             return response()->json(['status' => 'error', 'message' => 'This crate has already been opened.'], 422);
         }
 
-        // Weighted random prizes based on crate tier
         $rewardSc = 0.00;
-        $rewardXp = 0;
-
-        switch ($crate->tier) {
-            case 'mythic':
-                $rewardSc = (float) Arr::random([5.00, 7.50, 10.00, 15.00]);
-                $rewardXp = random_int(100, 500);
-                break;
-            case 'platinum':
-                $rewardSc = (float) Arr::random([2.50, 4.00, 6.00, 8.00]);
-                $rewardXp = random_int(50, 200);
-                break;
-            case 'gold':
-                $rewardSc = (float) Arr::random([1.00, 2.00, 3.50, 5.00]);
-                $rewardXp = random_int(30, 100);
-                break;
-            case 'silver':
-                $rewardSc = (float) Arr::random([0.50, 1.00, 1.50, 2.50]);
-                $rewardXp = random_int(15, 50);
-                break;
-            case 'bronze':
-            default:
-                $rewardSc = (float) Arr::random([0.20, 0.40, 0.60, 1.00]);
-                $rewardXp = random_int(5, 20);
-                break;
-        }
+        $rewardXp = random_int(5, 100);
 
         $crate->update([
             'status' => 'opened',
@@ -81,17 +55,14 @@ class CrateController extends Controller
             'opened_at' => now(),
         ]);
 
-        $user->increment('game_balance', $rewardSc);
         $user->awardVipXp($rewardXp);
-
-        $formattedSc = number_format($rewardSc, 2);
 
         return response()->json([
             'status' => 'success',
             'reward_sc' => $rewardSc,
             'reward_xp' => $rewardXp,
-            'new_balance' => (float) $user->game_balance,
-            'message' => "Unboxed {$formattedSc} SC and {$rewardXp} VIP XP!",
+            'new_balance' => $user->eur_balance_cents / 100,
+            'message' => "Unboxed {$rewardXp} VIP XP. Crates do not award EUR.",
         ]);
     }
 }

@@ -1,257 +1,31 @@
 import React, { useState } from 'react';
-import { Head, Link } from '@inertiajs/react';
+import { Head, Link, useForm, usePage, usePoll } from '@inertiajs/react';
+import { Crown, Sparkles, CalendarDays, Target, ArrowUpRight, Check, LockKeyhole, Gift, RotateCcw } from 'lucide-react';
 import MainLayout from '../Layouts/MainLayout';
-import { 
-    Crown, 
-    Trophy, 
-    Sparkles, 
-    ShieldCheck, 
-    Zap, 
-    ArrowRight, 
-    Coins, 
-    Check, 
-    Gift,
-    Headphones,
-    Flame,
-    Lock,
-    TrendingUp,
-    ChevronRight,
-    HelpCircle
-} from 'lucide-react';
-
-const defaultVipTiers = [
-    { level: 1, name: 'Bronze Recruit', min_xp: 0, max_xp: 5000, cashback: '2%', rakeback: '5%', level_bonus: '25 SC', icon: '🥉' },
-    { level: 2, name: 'Silver Shadow', min_xp: 5000, max_xp: 20000, cashback: '5%', rakeback: '8%', level_bonus: '100 SC', icon: '🥈' },
-    { level: 3, name: 'Gold Ronin', min_xp: 20000, max_xp: 50000, cashback: '8%', rakeback: '12%', level_bonus: '300 SC', icon: '🥇' },
-    { level: 4, name: 'Platinum Cyber', min_xp: 50000, max_xp: 100000, cashback: '12%', rakeback: '15%', level_bonus: '1,000 SC', icon: '💎' },
-    { level: 5, name: 'Neon Overlord', min_xp: 100000, max_xp: 500000, cashback: '18%', rakeback: '20%', level_bonus: '5,000 SC', icon: '👑' },
-];
-
-export default function VipClub({ vipTiers = defaultVipTiers }) {
-    const [openFaq, setOpenFaq] = useState(null);
-    const tiers = vipTiers.length > 0 ? vipTiers : defaultVipTiers;
-
-    const faqs = [
-        {
-            q: 'How do I earn VIP XP points?',
-            a: 'For every 1 SC wagered on slots, live casino tables, or crash games, you automatically earn 1 VIP XP point in real time. XP never expires.'
-        },
-        {
-            q: 'Are there any wagering requirements on VIP rewards?',
-            a: 'None! All cashback, weekly rakeback, and level-up bonuses are credited as pure SC with 0x wager requirement.'
-        },
-        {
-            q: 'When is cashback and rakeback credited?',
-            a: 'Instant cashback is available immediately in your VIP dashboard. Weekly rakeback drops every Monday at 00:00 UTC.'
-        },
-        {
-            q: 'How do I contact my personal VIP Concierge?',
-            a: 'Once you reach Gold Ronin (Level 3) or above, a dedicated VIP Manager will be assigned to your account with direct 24/7 Telegram & Live Chat access.'
-        }
-    ];
-
-    return (
-        <MainLayout>
-            {({ openDeposit, openAuth }) => (
-                <div className="w-full max-w-[1536px] mx-auto flex flex-col gap-10 py-4">
-                    <Head title="VIP Club & Elite Rewards — Neonwin" />
-
-                    {/* Hero Banner in Amethyst-Gold Style */}
-                    <div className="relative rounded-3xl overflow-hidden bg-gradient-to-r from-[#1c122c] via-[#14101e] to-[#0d0f16] border border-[#483450] p-8 md:p-14 flex flex-col md:flex-row items-center justify-between gap-8 shadow-[0_20px_60px_rgba(0,0,0,0.6)]">
-                        {/* Background Glow */}
-                        <div className="absolute top-0 right-1/4 w-96 h-96 bg-purple-600/15 rounded-full blur-3xl pointer-events-none" />
-                        <div className="absolute bottom-0 left-10 w-80 h-80 bg-amber-500/10 rounded-full blur-3xl pointer-events-none" />
-
-                        <div className="max-w-2xl relative z-10 text-center md:text-left">
-                            <span className="nw-eyebrow mb-3 text-amber-300">
-                                <Crown size={14} className="text-yellow-400" /> EXCLUSIVE PRESTIGE EXPERIENCE
-                            </span>
-
-                            <h1 className="font-heading font-black text-3xl sm:text-4xl md:text-6xl text-white tracking-tight leading-[1.1] mb-4">
-                                Rise to glory.<br />
-                                <span className="text-transparent bg-clip-text bg-gradient-to-r from-yellow-300 via-amber-200 to-yellow-500">
-                                    Claim your crown.
-                                </span>
-                            </h1>
-
-                            <p className="text-xs sm:text-sm text-gray-300 font-medium max-w-xl leading-relaxed mb-6">
-                                Play your favorite slots, live casino tables and crash games. Earn VIP XP on every spin to unlock up to 18% instant cashback, weekly rakeback, and lifetime gifts.
-                            </p>
-
-                            <div className="flex flex-wrap items-center justify-center md:justify-start gap-4">
-                                <Link 
-                                    href="/" 
-                                    className="nw-button nw-button-purple px-6 py-3 text-xs flex items-center gap-2"
-                                >
-                                    <span>Explore Games & Earn XP</span>
-                                    <ArrowRight size={14} />
-                                </Link>
-
-                                <button 
-                                    onClick={openDeposit}
-                                    className="px-5 py-2.5 rounded-xl bg-[#21182e] hover:bg-[#2c203d] border border-[#4d365e] text-yellow-300 text-xs font-bold transition flex items-center gap-2"
-                                >
-                                    <Coins size={14} className="text-yellow-400" />
-                                    <span>Get Coins Pack</span>
-                                </button>
-                            </div>
-                        </div>
-
-                        {/* Trophy Art */}
-                        <div className="relative w-56 h-56 sm:w-64 sm:h-64 flex items-center justify-center flex-shrink-0">
-                            <img 
-                                src="/images/landing/neon-trophy.png" 
-                                alt="Neonwin VIP Trophy" 
-                                className="w-full h-full object-contain filter drop-shadow-[0_15px_30px_rgba(234,179,8,0.3)] animate-pulse"
-                            />
-                        </div>
-                    </div>
-
-                    {/* Quick Highlights Row */}
-                    <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-                        <div className="p-4 rounded-2xl bg-[#161220] border border-[#342742] flex items-center gap-3">
-                            <div className="w-10 h-10 rounded-xl bg-purple-900/40 border border-purple-500/30 flex items-center justify-center text-purple-300 flex-shrink-0">
-                                <ShieldCheck size={20} />
-                            </div>
-                            <div>
-                                <strong className="block text-xs font-bold text-white font-heading">0x Wagering</strong>
-                                <span className="text-[10px] text-gray-400">Pure Coins bonuses</span>
-                            </div>
-                        </div>
-
-                        <div className="p-4 rounded-2xl bg-[#161220] border border-[#342742] flex items-center gap-3">
-                            <div className="w-10 h-10 rounded-xl bg-amber-900/40 border border-amber-500/30 flex items-center justify-center text-yellow-400 flex-shrink-0">
-                                <Coins size={20} />
-                            </div>
-                            <div>
-                                <strong className="block text-xs font-bold text-white font-heading">Up to 18% Cashback</strong>
-                                <span className="text-[10px] text-gray-400">Instant on all spins</span>
-                            </div>
-                        </div>
-
-                        <div className="p-4 rounded-2xl bg-[#161220] border border-[#342742] flex items-center gap-3">
-                            <div className="w-10 h-10 rounded-xl bg-cyan-900/40 border border-cyan-500/30 flex items-center justify-center text-cyan-300 flex-shrink-0">
-                                <Zap size={20} />
-                            </div>
-                            <div>
-                                <strong className="block text-xs font-bold text-white font-heading">Weekly Rakeback</strong>
-                                <span className="text-[10px] text-gray-400">Drops every Monday</span>
-                            </div>
-                        </div>
-
-                        <div className="p-4 rounded-2xl bg-[#161220] border border-[#342742] flex items-center gap-3">
-                            <div className="w-10 h-10 rounded-xl bg-pink-900/40 border border-pink-500/30 flex items-center justify-center text-pink-300 flex-shrink-0">
-                                <Headphones size={20} />
-                            </div>
-                            <div>
-                                <strong className="block text-xs font-bold text-white font-heading">VIP Concierge</strong>
-                                <span className="text-[10px] text-gray-400">24/7 Dedicated manager</span>
-                            </div>
-                        </div>
-                    </div>
-
-                    {/* VIP Tiers Grid */}
-                    <div className="flex flex-col gap-5">
-                        <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-2">
-                            <div>
-                                <h2 className="font-heading font-black text-xl sm:text-2xl text-white">
-                                    VIP Progression Tiers
-                                </h2>
-                                <p className="text-xs text-gray-400">
-                                    Unlock greater cashback, weekly rakeback, and rank cash bonuses as you level up.
-                                </p>
-                            </div>
-                            <span className="text-xs text-purple-300 font-mono bg-purple-950/60 border border-purple-800/40 px-3 py-1 rounded-full">
-                                10,000 Coins = 1 XP
-                            </span>
-                        </div>
-
-                        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5">
-                            {tiers.map((tier, idx) => (
-                                <div 
-                                    key={tier.level}
-                                    className={`relative p-6 rounded-2xl border transition-all duration-300 flex flex-col justify-between ${
-                                        idx === 2 
-                                            ? 'bg-gradient-to-b from-[#231836] to-[#14101e] border-yellow-500/50 shadow-[0_0_30px_rgba(234,179,8,0.15)]' 
-                                            : 'bg-[#15121e] border-[#362744] hover:border-purple-500/40'
-                                    }`}
-                                >
-                                    {idx === 2 && (
-                                        <span className="absolute -top-3 left-1/2 -translate-x-1/2 px-3 py-0.5 rounded-full bg-yellow-400 text-black text-[9px] font-black uppercase tracking-wider shadow-md">
-                                            POPULAR MILESTONE
-                                        </span>
-                                    )}
-
-                                    <div>
-                                        <div className="flex items-center justify-between mb-4">
-                                            <span className="text-3xl">{tier.icon}</span>
-                                            <span className="px-2.5 py-0.5 rounded-full bg-purple-950/80 border border-purple-500/30 text-[9px] font-black text-purple-300 uppercase tracking-wider">
-                                                LEVEL {tier.level}
-                                            </span>
-                                        </div>
-
-                                        <h3 className="font-heading font-black text-lg text-white mb-1">
-                                            {tier.name}
-                                        </h3>
-                                        <div className="text-xs text-gray-400 font-mono mb-4">
-                                            {tier.min_xp?.toLocaleString()} - {tier.max_xp?.toLocaleString()} XP
-                                        </div>
-
-                                        <div className="space-y-2 text-xs">
-                                            <div className="flex justify-between p-2.5 rounded-xl bg-black/30 border border-white/5">
-                                                <span className="text-gray-400">Instant Cashback</span>
-                                                <span className="font-bold text-emerald-400">{tier.cashback}</span>
-                                            </div>
-                                            <div className="flex justify-between p-2.5 rounded-xl bg-black/30 border border-white/5">
-                                                <span className="text-gray-400">Weekly Rakeback</span>
-                                                <span className="font-bold text-cyan-400">{tier.rakeback}</span>
-                                            </div>
-                                            <div className="flex justify-between p-2.5 rounded-xl bg-black/30 border border-white/5">
-                                                <span className="text-gray-400">Rank Bonus</span>
-                                                <span className="font-bold text-yellow-400">{tier.level_bonus}</span>
-                                            </div>
-                                        </div>
-                                    </div>
-
-                                    <div className="mt-6 pt-4 border-t border-white/5">
-                                        <span className="text-[10px] text-gray-400 flex items-center gap-1.5">
-                                            <Check size={12} className="text-emerald-400" />
-                                            <span>Lifetime Status • Never Downgrades</span>
-                                        </span>
-                                    </div>
-                                </div>
-                            ))}
-                        </div>
-                    </div>
-
-                    {/* FAQ Section */}
-                    <div className="p-6 sm:p-8 rounded-3xl bg-[#14111d] border border-[#362744] flex flex-col gap-5">
-                        <div className="flex items-center gap-3">
-                            <HelpCircle size={20} className="text-yellow-400" />
-                            <div>
-                                <h3 className="font-heading font-black text-lg text-white">VIP Club Frequently Asked Questions</h3>
-                                <p className="text-xs text-gray-400">Everything you need to know about XP and bonuses</p>
-                            </div>
-                        </div>
-
-                        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                            {faqs.map((faq, index) => (
-                                <div 
-                                    key={index}
-                                    className="p-4 rounded-2xl bg-[#1a1425] border border-[#3b2c4c]"
-                                >
-                                    <h4 className="text-xs font-bold text-white mb-1.5 flex items-center gap-2">
-                                        <span className="text-yellow-400">Q:</span> {faq.q}
-                                    </h4>
-                                    <p className="text-[11px] text-gray-300 leading-relaxed">
-                                        {faq.a}
-                                    </p>
-                                </div>
-                            ))}
-                        </div>
-                    </div>
-                </div>
-            )}
-        </MainLayout>
-    );
+const euro = cents => new Intl.NumberFormat('en-IE', { style: 'currency', currency: 'EUR' }).format(Number(cents || 0) / 100);
+const rate = bps => `${Number(bps) / 100}%`;
+function Claim({ id, children = 'Collect reward', disabled = false }) {
+    const form = useForm({});
+    return <div><button className="nw-button nw-button-purple" disabled={disabled || form.processing} onClick={() => form.post(`/vip/rewards/${id}/claim`, { preserveScroll: true })}>{form.processing ? 'Collecting…' : children}</button>{Object.values(form.errors).map((error, i) => <p role="alert" className="text-red-300 text-xs mt-2" key={i}>{error}</p>)}</div>;
+}
+export default function VipClub({ tiers = [], membership, quests = [], readyRewards, accruing = [], rewardHistory = [], resets_at, checkinDays = [], launchRakeback }) {
+    const { auth } = usePage().props;
+    usePoll(15000, { only: ['launchRakeback', 'membership', 'quests', 'readyRewards', 'accruing', 'rewardHistory', 'resets_at', 'checkinDays', 'auth'] }, { autoStart: Boolean(auth.user) });
+    const [tab, setTab] = useState('quests');
+    const checkin = useForm({});
+    const current = tiers.find(tier => tier.level === membership.level) || tiers[0];
+    const next = tiers.find(tier => tier.level === membership.level + 1);
+    const progress = next ? Math.min(100, Math.max(0, (membership.wager_cents - current.threshold_cents) / (next.threshold_cents - current.threshold_cents) * 100)) : 100;
+    return <MainLayout>{({ openAuth }) => <div className="nw-vip flex flex-col gap-7 pb-8"><Head title="VIP club · Rewards & quests" />
+        <header className="nw-vip-hero"><div className="relative z-10"><span className="nw-eyebrow text-amber-200"><Sparkles size={13} /> THE NEONWIN INNER CIRCLE</span><h1 className="text-4xl sm:text-5xl font-semibold tracking-tight leading-tight mt-5">A little more<br /><span className="text-amber-200">every time you play.</span></h1><p className="text-sm text-gray-400 leading-7 max-w-md mt-5">Ten levels. Daily quests. Rewards to make your own.<br />Your club, with every benefit in one place.</p><div className="flex flex-wrap gap-2 mt-6"><span className="nw-account-chip">10 membership levels</span><span className="nw-account-chip">EUR rewards</span><Link href="/promotions" className="nw-account-chip">Reward rules <ArrowUpRight size={13} /></Link></div></div><div className="nw-vip-member"><div className="flex items-center justify-between"><span className="nw-eyebrow text-purple-300">{auth.user ? 'YOUR MEMBERSHIP' : 'START YOUR JOURNEY'}</span><Crown className="text-amber-200" size={32} /></div><span className="text-xs text-gray-500 block mt-8">LEVEL {current.level} / 10</span><h2 className="text-3xl font-semibold mt-2">{current.name}</h2><div className="nw-vip-progress mt-6" role="progressbar" aria-label="Progress to next VIP level" aria-valuenow={Math.round(progress)} aria-valuemin={0} aria-valuemax={100}><div style={{ width: `${progress}%` }} /></div><p className="text-xs text-gray-400 leading-6 mt-3">{next ? `${euro(Math.max(0, next.threshold_cents - membership.wager_cents))} eligible wagers to ${next.name}` : 'You have reached the highest membership level.'}</p><div className="grid grid-cols-3 gap-2 border-t border-white/10 pt-5 mt-5">{[['Daily', current.daily_bps], ['Weekly', current.weekly_bps], ['Monthly', current.monthly_bps]].map(([label, value]) => <div key={label}><strong className="text-xl text-purple-200">{rate(value)}</strong><small className="block text-[10px] text-gray-500 mt-1">{label} rakeback</small></div>)}</div>{!auth.user && <button onClick={() => openAuth('register')} className="nw-button nw-button-purple w-full mt-6">Join the club <ArrowUpRight size={15} /></button>}</div></header>
+        <Link href="/wheel" className="nw-account-card flex flex-wrap items-center justify-between gap-4"><div className="flex items-center gap-4"><Gift size={27} className="text-amber-200" /><div><h2 className="text-xl font-semibold">Your daily drop awaits.</h2><p className="text-sm text-gray-400 mt-2">One free wheel spin every 24 hours. EUR prizes, straight to your wallet.</p></div></div><span className="nw-button bg-purple-400/15 text-purple-200">Explore daily wheel <ArrowUpRight size={15} /></span></Link>
+        {launchRakeback?.rakeback_enabled && <section className="nw-account-card border-amber-300/20"><span className="nw-eyebrow text-amber-200">LAUNCH DAILY RAKEBACK</span><h2 className="text-2xl font-semibold">{rate(launchRakeback.rakeback_bps)} on {launchRakeback.rakeback_basis === 'stakes' ? 'eligible stakes' : 'daily net loss'}</h2><p className="text-sm text-gray-400 leading-7 mt-3">Scheduled from {new Date(launchRakeback.rakeback_starts_at).toLocaleDateString('en-GB', { timeZone: 'UTC' })} until {new Date(launchRakeback.rakeback_ends_at).toLocaleString('en-GB', { timeZone: 'UTC' })} UTC (exclusive). This replaces daily VIP rakeback during the active campaign. Weekly and monthly VIP rates continue separately. Net loss is eligible stakes minus paid-game payouts received that UTC day, never below zero. Returns and corrections adjust rewards. Collect after midnight UTC.</p></section>}
+        {membership.reward_debt_cents > 0 && <p role="status" className="rounded-2xl border border-amber-300/20 bg-amber-300/5 p-5 text-sm text-amber-100">A returned wager adjusted your rewards by {euro(membership.reward_debt_cents)}. This amount will be offset against future VIP rewards.</p>}
+        <section className="nw-account-card"><div className="flex flex-wrap items-start justify-between gap-5"><div className="nw-account-section-title"><CalendarDays size={22} /><div><h2>Your seven-day ritual</h2><p>Check in once a day. Consecutive days increase your daily reward; a missed day restarts the series.</p></div></div>{auth.user ? <button className="nw-button nw-button-purple" disabled={checkin.processing || membership.checkin_today} onClick={() => checkin.post('/vip/check-in', { preserveScroll: true })}>{membership.checkin_today ? <><Check size={15} />Checked in today</> : checkin.processing ? 'Collecting…' : `Check in · ${euro(membership.checkin_base_cents * membership.next_checkin_day)}`}</button> : <button className="nw-button nw-button-purple" onClick={() => openAuth('login')}>Sign in to check in</button>}</div><div className="nw-vip-week mt-6">{checkinDays.map((day, i) => { const completed = day.collected; const selected = day.is_today; return <div key={i} className={`nw-vip-day ${selected ? 'is-today' : ''} ${completed ? 'is-complete' : ''}`}><span>DAY {i + 1}</span>{completed ? <Check size={22} /> : i === 6 ? <Gift size={22} /> : <Sparkles size={22} />}<strong>{euro(day.amount_cents)}</strong><small>{completed ? 'Collected' : selected ? 'Today' : 'Consecutive day'}</small></div>; })}</div><p className="text-[11px] text-gray-500 leading-6 mt-4">Daily reset: {new Date(resets_at).toLocaleString('en-GB', { timeZone: 'UTC' })} UTC. The series starts again after day 7. Check-in rewards require no wagering.</p></section>
+        <nav className="flex flex-wrap gap-2 border-b border-white/10 pb-4" aria-label="VIP sections">{[['quests', 'Daily quests', Target], ['rakeback', 'Rakeback & rewards', RotateCcw], ['levels', 'The ten levels', Crown]].map(([key, label, Icon]) => <button key={key} onClick={() => setTab(key)} aria-pressed={tab === key} className={`nw-button ${tab === key ? 'bg-purple-400/15 text-purple-200 border border-purple-400/30' : 'text-gray-400 bg-white/5'}`}><Icon size={17} />{label}</button>)}</nav>
+        {tab === 'quests' && <><div className="flex flex-wrap items-end justify-between gap-4"><div><h2 className="text-2xl font-semibold">Small missions. Extra possibilities.</h2><p className="text-sm text-gray-400 mt-2">Optional daily quests, tracked from confirmed EUR game activity.</p></div><span className="nw-account-chip text-xs"><CalendarDays size={14} /> Resets at 00:00 UTC</span></div><div className="grid md:grid-cols-2 xl:grid-cols-3 gap-5">{quests.map(quest => { const percent = Math.min(100, quest.progress / quest.rule.target * 100); return <article key={quest.quest_id} className="nw-account-card flex flex-col gap-5"><div className="flex justify-between items-center"><span className="rounded-xl bg-purple-400/10 p-3 text-purple-300"><Target size={22} /></span><span className="nw-account-chip text-amber-200">+{euro(quest.reward_cents)}</span></div><div><h3 className="font-semibold text-xl">{quest.rule.name}</h3><p className="text-sm text-gray-400 mt-3 leading-6">{quest.rule.kind === 'wager' ? `Wager ${euro(quest.rule.target)} today.` : `Complete ${quest.rule.target} paid slot rounds today.`}{quest.rule.game_code && <><br /><span className="text-purple-300">{quest.rule.provider_code} · {quest.rule.game_code}</span></>}<br />Minimum qualifying bet: {euro(quest.rule.min_bet_cents)}.</p></div><div className="mt-auto"><div className="flex justify-between text-xs text-gray-500 mb-3"><span>{quest.rule.kind === 'wager' ? euro(quest.progress) : quest.progress} / {quest.rule.kind === 'wager' ? euro(quest.rule.target) : quest.rule.target}</span><span>{Math.floor(percent)}%</span></div><div className="nw-vip-progress" role="progressbar" aria-label={`${quest.rule.name} progress`} aria-valuenow={Math.round(percent)} aria-valuemin={0} aria-valuemax={100}><div style={{ width: `${percent}%` }} /></div></div>{quest.status === 'available' ? <Claim id={quest.id} /> : <span className={`text-xs flex items-center gap-2 ${quest.status === 'claimed' ? 'text-emerald-300' : 'text-gray-500'}`}>{quest.status === 'claimed' ? <><Check size={14} />Reward collected</> : 'Progress updates as qualifying bets are settled.'}</span>}</article>; })}</div><p className="text-xs text-gray-500 leading-6">Paid slot rounds are counted once per provider round. FreeSpins, zero-stake events and identified provider bonus rounds do not qualify. Bonus-buy quests are unavailable because the current feed does not confirm purchases. Daily quest terms are fixed when your first qualifying activity is recorded.</p></>}
+        {tab === 'rakeback' && <><div><h2 className="text-2xl font-semibold">Your play gives a little back.</h2><p className="text-sm text-gray-400 leading-7 mt-2">Daily, weekly and monthly rewards accrue separately from eligible stakes. Rates are fixed for each bet at your level before that bet. Collect after the period closes.</p></div><div className="grid md:grid-cols-3 gap-5">{[['daily', 'Daily rakeback', current.daily_bps], ['weekly', 'Weekly rakeback', current.weekly_bps], ['monthly', 'Monthly rakeback', current.monthly_bps]].map(([period, label, bps]) => { const bucket = accruing.find(row => row.snapshot.period === period); return <section key={period} className="nw-account-card"><div className="flex items-center justify-between"><span className="text-xs text-gray-400">{label}</span><span className="text-purple-300 text-sm">{bucket?.snapshot.launch ? `${rate(bucket.snapshot.bps)} · ${bucket.snapshot.basis === 'net_loss' ? 'net loss' : 'stakes'}` : rate(bps)}</span></div><strong className="text-4xl font-semibold block mt-6 tabular-nums">{euro(bucket?.amount_cents)}</strong><p className="text-xs text-gray-500 mt-4 leading-6">{euro(bucket?.progress)} {bucket?.snapshot.basis === 'net_loss' ? 'net loss' : 'eligible stakes'} this period.<br />{bucket ? `Closes ${new Date(bucket.ends_at).toLocaleString('en-GB', { timeZone: 'UTC' })} UTC` : 'Starts with your next eligible bet.'}</p></section>; })}</div><section className="nw-account-card"><h2 className="text-xl font-semibold">Ready to collect</h2>{readyRewards?.data?.length ? <div className="flex flex-col divide-y divide-white/5 mt-4">{readyRewards.data.map(reward => <div key={reward.id} className="flex flex-wrap items-center justify-between gap-4 py-5"><div><h3 className="font-medium">{reward.snapshot.name}</h3><span className="text-xs text-gray-500 capitalize">{reward.kind} reward</span></div><div className="flex items-center gap-5"><strong className="text-lg text-amber-200">{euro(reward.claimable_cents ?? reward.amount_cents)}</strong><Claim id={reward.id} /></div></div>)}</div> : <p className="text-sm text-gray-500 py-8">Your completed quests, level bonuses and closed-period rakeback will appear here.</p>}{readyRewards?.last_page > 1 && <div className="flex gap-4 items-center mt-5"><span className="text-xs text-gray-500">Page {readyRewards.current_page} of {readyRewards.last_page}</span>{readyRewards.prev_page_url && <Link href={readyRewards.prev_page_url} className="nw-button bg-white/5" preserveState preserveScroll>Previous</Link>}{readyRewards.next_page_url && <Link href={readyRewards.next_page_url} className="nw-button bg-white/5" preserveState preserveScroll>Next</Link>}</div>}</section><section className="nw-account-card"><h2 className="text-xl font-semibold">Recently collected</h2>{rewardHistory.length ? <div className="overflow-x-auto mt-5"><table className="w-full text-sm text-left whitespace-nowrap"><thead className="text-gray-500"><tr><th className="py-3 font-medium">Reward</th><th className="py-3 font-medium">Collected · UTC</th><th className="py-3 font-medium text-right">Amount</th></tr></thead><tbody>{rewardHistory.map(reward => <tr className="border-t border-white/5" key={reward.id}><td className="py-4 pr-5">{reward.snapshot.name}</td><td className="py-4 pr-5 text-gray-400">{new Date(reward.claimed_at).toLocaleString('en-GB', { timeZone: 'UTC' })}</td><td className="py-4 text-right text-emerald-300">+{euro(reward.amount_cents)}</td></tr>)}</tbody></table></div> : <p className="text-gray-500 text-sm mt-5">No rewards collected yet.</p>}</section><p className="text-xs text-gray-500 leading-6">Daily periods close at midnight UTC. Weeks start Monday; months start on day 1. Daily, weekly and monthly rates are additive. Fractions of a cent accumulate within each period, then round down to whole cents. Claims have no expiry. Only activity received after this club launched qualifies.</p></>}
+        {tab === 'levels' && <><div><h2 className="text-2xl font-semibold">From your first spark to Neon Legend.</h2><p className="text-sm text-gray-400 mt-2">Levels unlock through cumulative eligible EUR stakes. Each unlock bonus can be collected once.</p></div><div className="grid sm:grid-cols-2 xl:grid-cols-5 gap-4">{tiers.map(tier => <article key={tier.level} className={`nw-account-card nw-vip-tier ${tier.level === current.level ? 'is-current' : ''}`}><div className="flex justify-between text-xs text-gray-500"><span>LEVEL {tier.level}</span>{tier.level <= membership.level ? <Check size={15} className="text-amber-200" /> : <LockKeyhole size={14} />}</div><Crown className="text-amber-200/70 my-6" size={30} strokeWidth={1.3} /><h3 className="text-lg font-semibold">{tier.name}</h3><p className="text-xs text-gray-500 leading-6 mt-2">{euro(tier.threshold_cents)} cumulative stakes</p><div className="border-t border-white/10 pt-4 mt-5 flex flex-col gap-3 text-xs"><div className="flex justify-between"><span className="text-gray-500">Unlock bonus</span><strong className="text-amber-200">{euro(tier.bonus_cents)}</strong></div>{[['Daily', tier.daily_bps], ['Weekly', tier.weekly_bps], ['Monthly', tier.monthly_bps]].map(([label, bps]) => <div key={label} className="flex justify-between"><span className="text-gray-500">{label}</span><span className="text-purple-200">{rate(bps)}</span></div>)}<p className="text-[10px] text-gray-500 leading-5">Check-in starts at {euro(tier.checkin_cents)}, up to {euro(tier.checkin_cents * 7)} on day 7.</p></div></article>)}</div></>}
+        <div className="rounded-2xl border border-white/10 p-5 flex flex-wrap items-center justify-between gap-4"><p className="text-xs text-gray-500 leading-6 max-w-2xl">Play within your own limits. Quests are optional; you never need to complete a target or chase a reward. Rewards do not activate payment processing or withdrawals.</p><Link href="/responsible-gaming" className="text-purple-300 text-xs">Responsible play <ArrowUpRight className="inline" size={13} /></Link></div>
+    </div>}</MainLayout>;
 }

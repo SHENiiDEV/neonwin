@@ -212,7 +212,7 @@ export default function Header({
                 {/* Desktop Nav Links */}
                 <nav className="nw-header-nav" aria-label="Explore">
                     <Link href="/" className="is-active">Casino</Link>
-                    <Link href="/?category=live">Live casino</Link>
+                    <Link href="/?category=live">Live casino</Link><Link href="/sportsbook">Sportsbook</Link>
                     <button onClick={onOpenVip} className="flex items-center gap-1.5 text-yellow-400 hover:text-yellow-300">
                         <Crown size={14} /> VIP club
                     </button>
@@ -327,19 +327,8 @@ export default function Header({
 
                 {user ? (
                     <>
-                        {/* Cyber Crates Quick Button */}
-                        <button 
-                            onClick={onOpenCrates}
-                            className="px-3 py-2 rounded-xl bg-[#231538] hover:bg-[#2e1d48] border border-purple-500/40 text-purple-300 text-xs font-bold transition flex items-center gap-1.5 relative shadow-sm"
-                        >
-                            <span>📦 Crates</span>
-                            {user.pending_crates_count > 0 && (
-                                <span className="w-2 h-2 rounded-full bg-yellow-400 animate-ping" />
-                            )}
-                        </button>
-
                         <button className="nw-button nw-button-purple" onClick={onOpenDeposit}>
-                            <Plus size={16} /> Get SC
+                            <Plus size={16} /> Cashier
                         </button>
                         
                         <div className="relative">
@@ -370,42 +359,16 @@ export default function Header({
                                     </Link>
                                     <button 
                                         onClick={() => {
-                                             setProfileOpen(false);
-                                             onOpenCrates();
-                                        }}
-                                        className="flex items-center gap-2.5 px-3 py-2 text-xs font-medium text-gray-200 hover:text-white hover:bg-white/5 rounded-xl transition w-full text-left"
-                                    >
-                                        <span className="text-sm">📦</span>
-                                        <span>Cyber Crates ({user.pending_crates_count || 0})</span>
-                                    </button>
-                                    <button 
-                                        onClick={() => {
                                             setProfileOpen(false);
                                             onOpenVault();
                                         }}
                                         className="flex items-center gap-2.5 px-3 py-2 text-xs font-medium text-gray-200 hover:text-white hover:bg-white/5 rounded-xl transition w-full text-left"
                                     >
                                         <span className="text-sm">🔒</span>
-                                        <span>Cyber Vault ({Math.floor(Number(user.vault_balance || 0)).toLocaleString()} Coins)</span>
+                                        <span>Cyber Vault (€{Number(user.vault_balance || 0).toFixed(2)})</span>
                                     </button>
-                                    <button 
-                                        onClick={() => {
-                                            setProfileOpen(false);
-                                            onOpenTip();
-                                        }}
-                                        className="flex items-center gap-2.5 px-3 py-2 text-xs font-medium text-gray-200 hover:text-white hover:bg-white/5 rounded-xl transition w-full text-left"
-                                    >
-                                        <span className="text-sm">💸</span>
-                                        <span>Send Tip to Player</span>
-                                    </button>
-                                    <Link 
-                                        href="/profile?tab=syndicate" 
-                                        onClick={() => setProfileOpen(false)}
-                                        className="flex items-center gap-2.5 px-3 py-2 text-xs font-medium text-gray-200 hover:text-white hover:bg-white/5 rounded-xl transition"
-                                    >
-                                        <span className="text-sm">👥</span>
-                                        <span>Cyber Syndicate (Referrals)</span>
-                                    </Link>
+                                    <Link href="/profile?section=verification" className="nw-nav-link">Identity verification</Link>
+                                    {user.is_admin && <Link href="/admin" className="nw-nav-link">Administration</Link>}
                                     <button 
                                         onClick={() => {
                                             setProfileOpen(false);

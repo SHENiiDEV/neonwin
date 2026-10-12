@@ -54,7 +54,7 @@ class GamePreferenceController extends Controller
         }
 
         $favoriteCodes = UserFavorite::where('user_id', $user->id)->pluck('game_code')->toArray();
-        $games = Game::whereIn('game_code', $favoriteCodes)->get();
+        $games = Game::where('integration', config('gaming.provider'))->where('status', true)->whereIn('game_code', $favoriteCodes)->get();
 
         return response()->json([
             'favorites' => $favoriteCodes,

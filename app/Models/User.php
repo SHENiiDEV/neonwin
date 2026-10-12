@@ -4,6 +4,7 @@ namespace App\Models;
 
 use Carbon\Carbon;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
+use Illuminate\Database\Eloquent\Relations\HasOne;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
 use Illuminate\Support\Str;
@@ -19,7 +20,7 @@ class User extends Authenticatable
      */
     protected $fillable = [
         'name',
-        'surname',
+        'surname', 'contact_channel', 'contact_handle', 'contact_consent_at',
         'email',
         'phone',
         'date_of_birth',
@@ -41,7 +42,6 @@ class User extends Authenticatable
         'currency',
         'avatar',
         'sound_enabled',
-        'is_admin',
     ];
 
     /**
@@ -52,7 +52,7 @@ class User extends Authenticatable
     protected $hidden = [
         'password',
         'vault_pin',
-        'remember_token',
+        'remember_token', 'contact_handle', 'contact_consent_at',
     ];
 
     /**
@@ -63,6 +63,7 @@ class User extends Authenticatable
     protected function casts(): array
     {
         return [
+            'contact_handle' => 'encrypted', 'contact_consent_at' => 'immutable_datetime',
             'email_verified_at' => 'datetime',
             'date_of_birth' => 'date',
             'terms_accepted' => 'boolean',
@@ -74,6 +75,8 @@ class User extends Authenticatable
             'vip_level' => 'integer',
             'sound_enabled' => 'boolean',
             'is_admin' => 'boolean',
+            'eur_balance_cents' => 'integer',
+            'eur_vault_cents' => 'integer',
         ];
     }
 
@@ -104,6 +107,9 @@ class User extends Authenticatable
     protected static function booted(): void
     {
         static::creating(function ($user) {
+            if (empty($user->currency)) {
+                $user->currency = 'EUR';
+            }
             if (empty($user->user_code)) {
                 $user->user_code = 'NW-'.strtoupper(Str::random(8));
             }
@@ -114,6 +120,18 @@ class User extends Authenticatable
                 $user->avatar = 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=150&auto=format&fit=crop&q=80';
             }
         });
+    }
+
+    public function kyc(): HasOne
+    {
+        return $this->hasOne(KycSubmission::class);
+    }
+
+    public function hasApprovedKyc(): bool
+    {
+        $kyc = $this->kyc()->first();
+
+        return $kyc && $kyc->status === 'approved' && $kyc->document_path && $kyc->selfie_path;
     }
 
     public function transactions()

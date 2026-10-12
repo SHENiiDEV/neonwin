@@ -1,13 +1,13 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { Head, Link, usePage } from '@inertiajs/react';
-import { 
-    ArrowLeft, 
-    Maximize, 
-    Minimize, 
-    RefreshCw, 
-    Coins, 
-    Sparkles, 
-    ShieldCheck, 
+import {
+    ArrowLeft,
+    Maximize,
+    Minimize,
+    RefreshCw,
+    Coins,
+    Sparkles,
+    ShieldCheck,
     Zap,
     Flame,
     Heart,
@@ -19,7 +19,7 @@ import {
 import MainLayout from '../Layouts/MainLayout';
 import GameCard from '../Components/GameCard';
 
-export default function GamePlayer({ game, launchUrl, isMock = false, relatedGames = [] }) {
+export default function GamePlayer({ game, launchUrl, relatedGames = [], message = '' }) {
     const { auth } = usePage().props;
     const user = auth?.user;
 
@@ -57,25 +57,16 @@ export default function GamePlayer({ game, launchUrl, isMock = false, relatedGam
             }
         }, 3000);
 
-        // Listen for real-time postMessage events from the game iframe
-        const handleMessage = (event) => {
-            if (event.data && event.data.type === 'NEONWIN_BALANCE_UPDATE') {
-                setCurrentBalance(event.data.balance);
-            }
-        };
-
         const handleFullscreenChange = () => {
             setIsFullscreen(Boolean(document.fullscreenElement));
         };
 
-        window.addEventListener('message', handleMessage);
         document.addEventListener('fullscreenchange', handleFullscreenChange);
         document.addEventListener('webkitfullscreenchange', handleFullscreenChange);
 
         return () => {
             clearTimeout(timer);
             clearInterval(pollInterval);
-            window.removeEventListener('message', handleMessage);
             document.removeEventListener('fullscreenchange', handleFullscreenChange);
             document.removeEventListener('webkitfullscreenchange', handleFullscreenChange);
         };
@@ -129,20 +120,21 @@ export default function GamePlayer({ game, launchUrl, isMock = false, relatedGam
                 <div className="w-full max-w-[1536px] mx-auto flex flex-col gap-6 py-2">
                     <Head title={`${game.name} - Play on Neonwin`} />
 
+                    {!launchUrl && <div role="alert" className="rounded-2xl border border-amber-300/20 bg-[#14161f] p-6"><h2 className="text-xl font-bold">Game unavailable</h2><p className="text-sm text-gray-400 mt-2">{message || 'Launch could not be confirmed. Please try again later.'}</p></div>}
                     {/* Top Breadcrumb & Quick Controls */}
                     <div className="flex flex-wrap items-center justify-between gap-4">
-                        
+
                         {/* Breadcrumbs & Title */}
                         <div className="flex items-center gap-2 text-xs text-gray-400">
-                            <Link 
-                                href="/" 
+                            <Link
+                                href="/"
                                 className="hover:text-purple-300 transition flex items-center gap-1 font-medium"
                             >
                                 <ArrowLeft className="w-3.5 h-3.5" />
                                 <span>Lobby</span>
                             </Link>
                             <ChevronRight className="w-3.5 h-3.5 text-gray-600" />
-                            <Link 
+                            <Link
                                 href={`/?category=${game.category || 'slots'}`}
                                 className="hover:text-purple-300 transition uppercase tracking-wider font-semibold text-[11px]"
                             >
@@ -164,7 +156,7 @@ export default function GamePlayer({ game, launchUrl, isMock = false, relatedGam
                                 <div className="flex flex-col text-left">
                                     <span className="text-[9px] uppercase font-bold text-yellow-400/80 leading-none">Play Wallet</span>
                                     <span className="text-sm font-mono font-black text-white tracking-tight leading-tight">
-                                        {Number(currentBalance || 0).toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })} <small className="text-xs text-yellow-400 font-sans">SC</small>
+                                        {Number(currentBalance || 0).toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })} <small className="text-xs text-yellow-400 font-sans">EUR</small>
                                     </span>
                                 </div>
                             </div>
@@ -176,8 +168,8 @@ export default function GamePlayer({ game, launchUrl, isMock = false, relatedGam
                             <button
                                 onClick={toggleFavorite}
                                 className={`p-2 rounded-xl border transition flex items-center justify-center ${
-                                    favorite 
-                                        ? 'bg-rose-500/20 border-rose-500/40 text-rose-400' 
+                                    favorite
+                                        ? 'bg-rose-500/20 border-rose-500/40 text-rose-400'
                                         : 'bg-[#171926] border-[#2b2a3d] text-gray-400 hover:text-white hover:border-purple-500/40'
                                 }`}
                                 title={favorite ? 'Remove from favorites' : 'Add to favorites'}
@@ -218,11 +210,11 @@ export default function GamePlayer({ game, launchUrl, isMock = false, relatedGam
                     </div>
 
                     {/* Game Stage Container */}
-                    <div 
-                        ref={playerContainerRef} 
+                    {launchUrl && <div
+                        ref={playerContainerRef}
                         className={`w-full bg-[#080a10] relative rounded-2xl overflow-hidden border border-[#2c2844] shadow-[0_12px_45px_rgba(0,0,0,0.85)] flex flex-col items-center justify-center transition-all duration-300 ${
-                            isFullscreen 
-                                ? 'fixed inset-0 z-50 rounded-none border-0 h-screen max-h-none' 
+                            isFullscreen
+                                ? 'fixed inset-0 z-50 rounded-none border-0 h-screen max-h-none'
                                 : 'h-[520px] sm:h-[620px] lg:h-[72vh] max-h-[820px] min-h-[440px]'
                         }`}
                     >
@@ -263,7 +255,7 @@ export default function GamePlayer({ game, launchUrl, isMock = false, relatedGam
 
                                 <div className="text-[10px] text-gray-500 flex items-center gap-1.5 pt-1">
                                     <ShieldCheck className="w-3.5 h-3.5 text-emerald-400" />
-                                    <span>Certified RNG • Provably Fair Gameplay</span>
+                                    <span>Game hosted by the provider</span>
                                 </div>
                             </div>
                         )}
@@ -277,7 +269,7 @@ export default function GamePlayer({ game, launchUrl, isMock = false, relatedGam
                             allow="autoplay; fullscreen; encrypted-media; screen-wake-lock; clipboard-write; clipboard-read"
                             onLoad={() => setIsLoading(false)}
                         />
-                    </div>
+                    </div>}
 
                     {/* Bottom Info & Stats Bar */}
                     <div className="p-4 sm:p-5 rounded-2xl bg-[#121420] border border-[#232435] flex flex-wrap items-center justify-between gap-4">
@@ -294,7 +286,7 @@ export default function GamePlayer({ game, launchUrl, isMock = false, relatedGam
                                         {formattedProvider}
                                     </span>
                                     <span>•</span>
-                                    <span>RTP {Number(game.rtp || 96.50).toFixed(2)}%</span>
+                                    <span>RTP {game.rtp == null ? 'not supplied' : `${Number(game.rtp).toFixed(2)}%`}</span>
                                     <span>•</span>
                                     <span className="text-emerald-400 font-semibold flex items-center gap-1">
                                         <ShieldCheck className="w-3.5 h-3.5" /> Fair Play
@@ -305,12 +297,12 @@ export default function GamePlayer({ game, launchUrl, isMock = false, relatedGam
 
                         {/* Action buttons */}
                         <div className="flex items-center gap-3">
-                            <button 
+                            <button
                                 onClick={openDeposit}
                                 className="px-4 py-2 rounded-xl bg-gradient-to-r from-amber-500 to-yellow-400 hover:from-amber-400 hover:to-yellow-300 text-black font-extrabold text-xs tracking-wide transition shadow-[0_0_15px_rgba(245,158,11,0.3)] flex items-center gap-1.5"
                             >
                                 <Zap className="w-3.5 h-3.5 fill-black" />
-                                <span>GET SC COINS</span>
+                                <span>OPEN CASHIER</span>
                             </button>
                         </div>
                     </div>
@@ -327,7 +319,7 @@ export default function GamePlayer({ game, launchUrl, isMock = false, relatedGam
                                         Players who enjoyed {game.name} also played these top hits
                                     </p>
                                 </div>
-                                <Link 
+                                <Link
                                     href={`/?provider=${game.provider_code}`}
                                     className="text-xs font-bold text-purple-400 hover:text-purple-300 flex items-center gap-1 transition"
                                 >

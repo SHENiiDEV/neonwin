@@ -4,7 +4,7 @@ namespace App\Http\Controllers;
 
 use App\Models\ChatMessage;
 use App\Models\Game;
-use App\Models\LiveCommunityWin;
+use App\Models\GameTransaction;
 use App\Models\Provider;
 use App\Models\Tournament;
 use Illuminate\Http\Request;
@@ -20,14 +20,14 @@ class HomeController extends Controller
         $search = $request->query('search', '');
 
         // Fetch providers that have games
-        $providers = Provider::where('status', true)
-            ->has('games')
-            ->withCount('games')
+        $providers = Provider::where('integration', config('gaming.provider'))->where('status', true)
+            ->whereHas('games', fn ($query) => $query->where('status', true))
+            ->withCount(['games' => fn ($query) => $query->where('status', true)])
             ->get()
             ->sortByDesc('games_count')
             ->values();
 
-        $gamesQuery = Game::where('status', true);
+        $gamesQuery = Game::where('integration', config('gaming.provider'))->where('status', true)->whereHas('provider', fn ($query) => $query->where('status', true));
 
         if ($category !== 'all' && ! empty($category)) {
             if ($category === 'popular') {
@@ -53,13 +53,17 @@ class HomeController extends Controller
             $popularGames = (clone $gamesQuery)->take(12)->get();
         }
 
-        $liveGames = Game::where('status', true)->where('category', 'live')->take(8)->get();
-        $crashGames = Game::where('status', true)->where('category', 'crash')->take(8)->get();
-        $fishingGames = Game::where('status', true)->where('category', 'fishing')->take(8)->get();
-        $allGames = $gamesQuery->take(24)->get();
+        $liveGames = Game::where('integration', config('gaming.provider'))->where('status', true)->whereHas('provider', fn ($query) => $query->where('status', true))->where('category', 'live')->take(8)->get();
+        $crashGames = Game::where('integration', config('gaming.provider'))->where('status', true)->whereHas('provider', fn ($query) => $query->where('status', true))->where('category', 'crash')->take(8)->get();
+        $fishingGames = Game::where('integration', config('gaming.provider'))->where('status', true)->whereHas('provider', fn ($query) => $query->where('status', true))->where('category', 'fishing')->take(8)->get();
+        $allGames = $gamesQuery->orderBy('name')->orderBy('id')->paginate(36)->withQueryString()->appends(['browse' => 'all']);
 
         $tournaments = Tournament::where('status', 'active')->orderBy('ends_at', 'asc')->get();
-        $highlights = LiveCommunityWin::latest()->take(10)->get();
+        $highlights = GameTransaction::where('currency', 'EUR')->where('win_amount', '>', 0)->latest('id')->limit(10)->get(['id', 'game_code', 'bet_amount', 'win_amount', 'created_at'])->map(fn ($transaction) => [
+            'id' => $transaction->id, 'user_name' => 'Player', 'game_name' => $transaction->game_code, 'game_image' => '',
+            'bet_amount' => $transaction->bet_amount, 'win_amount' => $transaction->win_amount,
+            'multiplier' => (float) $transaction->bet_amount > 0 ? round((float) $transaction->win_amount / (float) $transaction->bet_amount, 2) : 0,
+        ]);
         $chatMessages = ChatMessage::latest()->take(20)->get()->reverse()->values();
 
         return Inertia::render('Home', [
@@ -68,7 +72,8 @@ class HomeController extends Controller
             'liveGames' => $liveGames,
             'crashGames' => $crashGames,
             'fishingGames' => $fishingGames,
-            'allGames' => $allGames,
+            'allGames' => $allGames->items(),
+            'catalogue' => ['total' => $allGames->total(), 'page' => $allGames->currentPage(), 'last_page' => $allGames->lastPage(), 'next' => $allGames->nextPageUrl(), 'previous' => $allGames->previousPageUrl()],
             'tournaments' => $tournaments,
             'highlights' => $highlights,
             'chatMessages' => $chatMessages,

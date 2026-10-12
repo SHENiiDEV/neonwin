@@ -2,11 +2,14 @@
 
 namespace App\Http\Controllers;
 
-use App\Models\TippingTransaction;
 use App\Models\User;
+use App\Models\WalletEntry;
+use App\Services\EuroMoney;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Str;
 
 class TippingController extends Controller
 {
@@ -14,7 +17,7 @@ class TippingController extends Controller
     {
         $validated = $request->validate([
             'recipient_code' => ['required', 'string'],
-            'amount' => ['required', 'numeric', 'min:0.10', 'max:500000000'],
+            'amount' => ['required', 'numeric', 'decimal:0,2', 'min:0.10', 'max:500000000'],
             'note' => ['nullable', 'string', 'max:150'],
         ]);
 
@@ -36,37 +39,30 @@ class TippingController extends Controller
             return response()->json(['status' => 'error', 'message' => 'You cannot send a tip to yourself.'], 422);
         }
 
-        $amount = (float) $validated['amount'];
-        if ($sender->game_balance < $amount) {
-            return response()->json(['status' => 'error', 'message' => 'Insufficient game balance to send tip.'], 422);
-        }
+        $amount = EuroMoney::cents($validated['amount']);
+        $result = DB::transaction(function () use ($sender, $recipient, $amount): array {
+            $users = User::whereIn('id', [$sender->id, $recipient->id])->orderBy('id')->lockForUpdate()->get()->keyBy('id');
+            $lockedSender = $users[$sender->id];
+            $lockedRecipient = $users[$recipient->id];
+            if ($lockedSender->eur_balance_cents < $amount) {
+                return ['status' => 'error', 'message' => 'Insufficient EUR balance to send tip.'];
+            }
+            $fee = intdiv($amount * 3 + 50, 100);
+            $net = $amount - $fee;
+            $senderBefore = $lockedSender->eur_balance_cents;
+            $recipientBefore = $lockedRecipient->eur_balance_cents;
+            $lockedSender->eur_balance_cents -= $amount;
+            $lockedRecipient->eur_balance_cents += $net;
+            $lockedSender->save();
+            $lockedRecipient->save();
+            $id = (string) Str::uuid();
+            foreach ([[$lockedSender, -$amount, $senderBefore, 'tip_sent'], [$lockedRecipient, $net, $recipientBefore, 'tip_received']] as [$user, $delta, $before, $kind]) {
+                WalletEntry::create(['user_id' => $user->id, 'reference' => $kind.':'.$id, 'kind' => $kind, 'delta_cents' => $delta, 'balance_before_cents' => $before, 'balance_after_cents' => $user->eur_balance_cents]);
+            }
 
-        // 3% Platform Fee
-        $fee = round($amount * 0.03, 2);
-        $netAmount = round($amount - $fee, 2);
+            return ['status' => 'success', 'new_balance' => $lockedSender->eur_balance_cents / 100, 'fee' => $fee / 100, 'net_delivered' => $net / 100, 'recipient_name' => $recipient->name, 'message' => 'EUR tip sent. A 3% platform fee was deducted.'];
+        }, 3);
 
-        $sender->decrement('game_balance', $amount);
-        $recipient->increment('game_balance', $netAmount);
-
-        $tipTx = TippingTransaction::create([
-            'sender_id' => $sender->id,
-            'recipient_id' => $recipient->id,
-            'amount_sc' => $amount,
-            'fee_sc' => $fee,
-            'net_amount_sc' => $netAmount,
-            'note' => $validated['note'] ?? null,
-        ]);
-
-        $formattedNet = number_format($netAmount, 2);
-        $formattedFee = number_format($fee, 2);
-
-        return response()->json([
-            'status' => 'success',
-            'new_balance' => (float) $sender->game_balance,
-            'fee' => $fee,
-            'net_delivered' => $netAmount,
-            'recipient_name' => $recipient->name,
-            'message' => "Successfully sent {$formattedNet} SC to {$recipient->name} (fee: {$formattedFee} SC).",
-        ]);
+        return response()->json($result, $result['status'] === 'success' ? 200 : 422);
     }
 }

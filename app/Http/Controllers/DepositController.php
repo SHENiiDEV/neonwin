@@ -2,82 +2,21 @@
 
 namespace App\Http\Controllers;
 
-use App\Mail\TopUpInvoiceMail;
+use App\Models\Deposit;
+use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
-use Illuminate\Support\Facades\Auth;
-use Illuminate\Support\Facades\Log;
-use Illuminate\Support\Facades\Mail;
+use Illuminate\Support\Str;
+use Illuminate\Validation\Rule;
 
 class DepositController extends Controller
 {
-    public function deposit(Request $request)
+    public const PACKAGES = ['eur_10' => 1000, 'eur_25' => 2500, 'eur_50' => 5000, 'eur_100' => 10000];
+
+    public function deposit(Request $request): JsonResponse
     {
-        $validated = $request->validate([
-            'amount' => 'required|numeric|min:0.01|max:1000000000',
-            'method' => 'required|string', // card, daily_sc_bonus
-            'pack_name' => 'nullable|string|max:100',
-            'price' => 'nullable|numeric',
-            'currency' => 'nullable|string|max:10',
-        ]);
+        $data = $request->validate(['package' => ['required', Rule::in(array_keys(self::PACKAGES))]]);
+        $deposit = Deposit::create(['reference' => (string) Str::uuid(), 'user_id' => $request->user()->id, 'package' => $data['package'], 'amount_cents' => self::PACKAGES[$data['package']], 'status' => 'unavailable']);
 
-        $user = Auth::user();
-        if (! $user) {
-            return response()->json(['status' => 'error', 'message' => 'Please log in to claim or add SC.'], 401);
-        }
-
-        if ($validated['method'] === 'daily_sc_bonus') {
-            if (! $user->canClaimDailyBonus()) {
-                $nextAvailable = $user->nextDailyBonusAt();
-                $diff = $nextAvailable ? $nextAvailable->diffForHumans(null, true) : 'a few hours';
-
-                return response()->json([
-                    'status' => 'error',
-                    'message' => "You have already claimed your daily free 0.02 SC. Next claim available in {$diff}.",
-                ], 422);
-            }
-
-            $dailySc = 0.02;
-            $user->increment('game_balance', $dailySc);
-            $user->update(['last_daily_bonus_at' => now()]);
-            $user->awardVipXp(1);
-
-            return response()->json([
-                'status' => 'success',
-                'new_balance' => (float) $user->game_balance,
-                'can_claim_daily_bonus' => false,
-                'next_daily_bonus_at' => $user->nextDailyBonusAt()?->toIso8601String(),
-                'message' => 'Successfully claimed your free 0.02 SC Daily Bonus! Next claim available in 24 hours.',
-            ]);
-        }
-
-        $scCredited = (float) $validated['amount'];
-        $user->increment('game_balance', $scCredited);
-        $user->awardVipXp($scCredited * 10);
-
-        $price = (float) ($validated['price'] ?? round($scCredited * 2, 2));
-        $packName = $validated['pack_name'] ?? 'Sweeps Coins Pack';
-        $currency = $validated['currency'] ?? 'EUR';
-
-        // Send Top-Up Confirmation with PDF Invoice
-        try {
-            Mail::to($user->email)->send(
-                new TopUpInvoiceMail(
-                    user: $user,
-                    coins: $scCredited,
-                    price: $price,
-                    currency: $currency,
-                    packName: $packName,
-                    newBalance: (float) $user->game_balance
-                )
-            );
-        } catch (\Throwable $e) {
-            Log::warning('TopUp invoice email could not be sent: '.$e->getMessage());
-        }
-
-        return response()->json([
-            'status' => 'success',
-            'new_balance' => (float) $user->game_balance,
-            'message' => 'Successfully credited '.number_format($scCredited, 2).' SC to your wallet (1 EUR = 0.5 SC). Receipt sent to your email.',
-        ]);
+        return response()->json(['status' => 'unavailable', 'reference' => $deposit->reference, 'message' => 'Payments are not available yet. Your request was recorded; your wallet has not been credited.'], 503);
     }
 }

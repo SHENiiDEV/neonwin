@@ -2,25 +2,8 @@ import React from 'react';
 import { ArrowUpRight, Sparkles } from 'lucide-react';
 import ProviderLogo from './ProviderLogo';
 
-const fallbackProviders = [
-    { code: 'PRAGMATIC', name: 'Pragmatic Play' },
-    { code: 'PP_LIVE_PRO', name: 'Pragmatic Live' },
-    { code: 'PGSOFT', name: 'PG Soft' },
-    { code: 'HACKSAW', name: 'Hacksaw Gaming' },
-    { code: 'SPRIBE', name: 'Spribe' },
-    { code: 'HABANERO', name: 'Habanero' },
-    { code: 'BOOONGO', name: 'Booongo' },
-    { code: 'PLAYSON', name: 'Playson' },
-    { code: 'CQ9', name: 'CQ9 Gaming' },
-    { code: 'EVOPLAY', name: 'Evoplay' },
-    { code: 'NOLIMIT', name: 'NoLimit City' },
-    { code: 'EVOLUTION', name: 'Evolution' },
-    { code: 'NETENT', name: 'NetEnt' },
-    { code: 'FASTSPIN', name: 'FastSpin' },
-];
-
 export default function ProvidersBar({ providers = [], onSelectProvider }) {
-    const displayProviders = providers.length >= 6 ? providers : fallbackProviders;
+    const displayProviders = providers;
 
     return (
         <section className="nw-providers pt-8 border-t border-[#291e36]" aria-label="Game providers">
@@ -32,7 +15,7 @@ export default function ProvidersBar({ providers = [], onSelectProvider }) {
                     </span>
                 </div>
                 <span className="text-[11px] text-gray-400 font-mono">
-                    {displayProviders.length} official providers & studios
+                    {displayProviders.length} available providers & studios
                 </span>
             </div>
 

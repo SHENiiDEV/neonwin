@@ -29,6 +29,7 @@ return [
     */
 
     'disks' => [
+        'kyc' => ['driver' => 'local', 'root' => storage_path('app/kyc-private'), 'visibility' => 'private', 'serve' => false, 'throw' => true],
 
         'local' => [
             'driver' => 'local',

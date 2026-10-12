@@ -10,73 +10,26 @@ class DepositTest extends TestCase
 {
     use RefreshDatabase;
 
-    public function test_user_can_claim_daily_bonus_once(): void
+    public function test_daily_bonus_cannot_mint_eur(): void
     {
-        $user = User::factory()->create([
-            'game_balance' => 0.00,
-            'last_daily_bonus_at' => null,
-        ]);
-
-        $response = $this->actingAs($user)->postJson('/deposit', [
-            'amount' => 0.02,
-            'method' => 'daily_sc_bonus',
-        ]);
-
-        $response->assertOk();
-        $response->assertJson([
-            'status' => 'success',
-            'new_balance' => 0.02,
-            'can_claim_daily_bonus' => false,
-        ]);
-
-        $user->refresh();
-        $this->assertEquals(0.02, $user->game_balance);
-        $this->assertNotNull($user->last_daily_bonus_at);
-        $this->assertFalse($user->canClaimDailyBonus());
+        $user = User::factory()->create(['game_balance' => 10, 'eur_balance_cents' => 0]);
+        $this->actingAs($user)->postJson('/deposit', ['amount' => 0.02, 'method' => 'daily_sc_bonus'])->assertUnprocessable();
+        $this->assertSame(0, $user->fresh()->eur_balance_cents);
+        $this->assertSame('10.00', $user->fresh()->game_balance);
+        $this->assertDatabaseCount('wallet_entries', 0);
     }
 
-    public function test_user_cannot_claim_daily_bonus_twice_within_24_hours(): void
+    public function test_guest_cannot_create_deposit_request(): void
     {
-        $user = User::factory()->create([
-            'game_balance' => 0.02,
-            'last_daily_bonus_at' => now()->subHours(2),
-        ]);
-
-        $response = $this->actingAs($user)->postJson('/deposit', [
-            'amount' => 0.02,
-            'method' => 'daily_sc_bonus',
-        ]);
-
-        $response->assertStatus(422);
-        $response->assertJson([
-            'status' => 'error',
-        ]);
-
-        $user->refresh();
-        $this->assertEquals(0.02, $user->game_balance);
+        $this->postJson('/deposit', ['package' => 'eur_25'])->assertUnauthorized();
+        $this->assertDatabaseCount('deposits', 0);
     }
 
-    public function test_user_can_claim_daily_bonus_after_24_hours(): void
+    public function test_invalid_package_cannot_create_a_payment_or_credit(): void
     {
-        $user = User::factory()->create([
-            'game_balance' => 0.02,
-            'last_daily_bonus_at' => now()->subHours(25),
-        ]);
-
-        $this->assertTrue($user->canClaimDailyBonus());
-
-        $response = $this->actingAs($user)->postJson('/deposit', [
-            'amount' => 0.02,
-            'method' => 'daily_sc_bonus',
-        ]);
-
-        $response->assertOk();
-        $response->assertJson([
-            'status' => 'success',
-            'new_balance' => 0.04,
-        ]);
-
-        $user->refresh();
-        $this->assertEquals(0.04, $user->game_balance);
+        $user = User::factory()->create();
+        $this->actingAs($user)->postJson('/deposit', ['package' => 'eur_999999'])->assertUnprocessable();
+        $this->assertDatabaseCount('deposits', 0);
+        $this->assertSame(0, $user->fresh()->eur_balance_cents);
     }
 }

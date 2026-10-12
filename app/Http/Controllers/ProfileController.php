@@ -3,9 +3,11 @@
 namespace App\Http\Controllers;
 
 use App\Models\GameTransaction;
+use App\Models\PromotionRedemption;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Hash;
 use Inertia\Inertia;
 use Inertia\Response;
@@ -20,13 +22,14 @@ class ProfileController extends Controller
         }
 
         // Aggregate statistics from transactions
-        $transactionsQuery = GameTransaction::where('user_id', $user->id);
+        $transactionsQuery = GameTransaction::where('user_id', $user->id)->where('currency', 'EUR');
 
         $totalBets = (float) ($transactionsQuery->sum('bet_amount') ?? 0);
         $totalWins = (float) ($transactionsQuery->sum('win_amount') ?? 0);
-        $totalRounds = $transactionsQuery->count();
+        $rounds = (clone $transactionsQuery)->whereNotIn('type', ['refund', 'rollback'])->selectRaw('agent_code, provider_code, game_code, COALESCE(round_id, transaction_id) as round_key')->groupBy('agent_code', 'provider_code', 'game_code')->groupByRaw('COALESCE(round_id, transaction_id)');
+        $totalRounds = DB::query()->fromSub($rounds, 'player_rounds')->count();
 
-        $biggestWinTx = GameTransaction::where('user_id', $user->id)
+        $biggestWinTx = GameTransaction::where('user_id', $user->id)->where('currency', 'EUR')
             ->where('win_amount', '>', 0)
             ->orderByDesc('win_amount')
             ->first();
@@ -41,11 +44,12 @@ class ProfileController extends Controller
         ];
 
         // Fetch recent transactions
-        $recentTransactions = GameTransaction::where('user_id', $user->id)
+        $recentTransactions = GameTransaction::where('user_id', $user->id)->where('currency', 'EUR')
             ->orderByDesc('created_at')
-            ->limit(30)
-            ->get()
-            ->map(function ($tx) {
+            ->orderByDesc('id')
+            ->paginate(20)
+            ->appends(['section' => 'activity'])
+            ->through(function ($tx) {
                 return [
                     'id' => $tx->id,
                     'transaction_id' => $tx->transaction_id,
@@ -59,43 +63,28 @@ class ProfileController extends Controller
                 ];
             });
 
-        // VIP tiers configuration
-        $vipTiers = [
-            ['level' => 1, 'name' => 'Bronze Recruit', 'min_xp' => 0, 'max_xp' => 5000, 'cashback' => '2%', 'rakeback' => '5%', 'level_bonus' => '25 SC', 'icon' => '🥉'],
-            ['level' => 2, 'name' => 'Silver Shadow', 'min_xp' => 5000, 'max_xp' => 20000, 'cashback' => '5%', 'rakeback' => '8%', 'level_bonus' => '100 SC', 'icon' => '🥈'],
-            ['level' => 3, 'name' => 'Gold Ronin', 'min_xp' => 20000, 'max_xp' => 50000, 'cashback' => '8%', 'rakeback' => '12%', 'level_bonus' => '300 SC', 'icon' => '🥇'],
-            ['level' => 4, 'name' => 'Platinum Cyber', 'min_xp' => 50000, 'max_xp' => 100000, 'cashback' => '12%', 'rakeback' => '15%', 'level_bonus' => '1,000 SC', 'icon' => '💎'],
-            ['level' => 5, 'name' => 'Neon Overlord', 'min_xp' => 100000, 'max_xp' => 500000, 'cashback' => '18%', 'rakeback' => '20%', 'level_bonus' => '5,000 SC', 'icon' => '👑'],
-        ];
-
-        // Determine current and next tier
-        $currentTier = $vipTiers[0];
-        $nextTier = $vipTiers[1] ?? null;
-        foreach ($vipTiers as $idx => $tier) {
-            if ($user->vip_level >= $tier['level'] || $user->vip_xp >= $tier['min_xp']) {
-                $currentTier = $tier;
-                $nextTier = $vipTiers[$idx + 1] ?? null;
-            }
-        }
-
         $stats = [
-            'balance' => (float) $user->game_balance,
+            'balance' => $user->eur_balance_cents / 100,
             'vip_xp' => (int) $user->vip_xp,
             'vip_level' => (int) ($user->vip_level ?: 1),
             'total_bets' => $totalBets,
             'total_wins' => $totalWins,
             'net_profit' => round($totalWins - $totalBets, 2),
-            'rtp' => $totalBets > 0 ? round(($totalWins / $totalBets) * 100, 2) : 96.5,
+            'rtp' => $totalBets > 0 ? round(($totalWins / $totalBets) * 100, 2) : null,
             'total_rounds' => $totalRounds,
             'biggest_win' => $biggestWin,
-            'current_tier' => $currentTier,
-            'next_tier' => $nextTier,
         ];
 
         return Inertia::render('Profile', [
+            'offers' => PromotionRedemption::where('user_id', $user->id)->latest()->limit(20)->get()->map(fn ($redemption) => [
+                'id' => $redemption->id, 'name' => $redemption->snapshot['name'], 'terms' => $redemption->snapshot['terms'],
+                'status' => $redemption->status, 'bonus_cents' => $redemption->bonus_cents,
+                'spin_count' => $redemption->snapshot['reward']['spin_count'] ?? null,
+            ]),
             'stats' => $stats,
-            'transactions' => $recentTransactions,
-            'vipTiers' => $vipTiers,
+            'transactions' => $recentTransactions->items(),
+            'history' => ['previous' => $recentTransactions->previousPageUrl(), 'next' => $recentTransactions->nextPageUrl(), 'page' => $recentTransactions->currentPage(), 'total' => $recentTransactions->total()],
+            'verification' => ($submission = $user->kyc()->first()) ? array_merge($submission->only(['id', 'status', 'version', 'reason', 'reviewed_at']), ['has_document' => (bool) $submission->document_path, 'has_selfie' => (bool) $submission->selfie_path]) : null,
         ]);
     }
 

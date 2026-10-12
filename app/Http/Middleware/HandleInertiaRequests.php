@@ -2,6 +2,8 @@
 
 namespace App\Http\Middleware;
 
+use App\Models\Promotion;
+use App\Models\VipAccount;
 use Illuminate\Http\Request;
 use Inertia\Middleware;
 
@@ -36,26 +38,30 @@ class HandleInertiaRequests extends Middleware
     public function share(Request $request): array
     {
         $user = $request->user();
+        $welcomeOffer = Promotion::where('kind', 'first_deposit')->first();
 
         return array_merge(parent::share($request), [
             'auth' => [
                 'user' => $user ? [
                     'id' => $user->id,
+                    'is_admin' => (bool) $user->is_admin,
+                    'kyc_approved' => $user->hasApprovedKyc(),
                     'name' => $user->name,
+                    'surname' => $user->surname, 'phone' => $user->phone, 'street' => $user->street, 'city' => $user->city, 'postcode' => $user->postcode,
                     'email' => $user->email,
                     'user_code' => $user->user_code,
-                    'game_balance' => (float) $user->game_balance,
+                    'game_balance' => $user->eur_balance_cents / 100,
                     'vip_xp' => (int) $user->vip_xp,
-                    'vip_level' => (int) $user->vip_level,
-                    'currency' => $user->currency ?? 'SC',
+                    'vip_level' => (int) (VipAccount::where('user_id', $user->id)->value('level') ?? 1),
+                    'currency' => 'EUR',
                     'avatar' => $user->avatar,
-                    'vault_balance' => (float) $user->vault_balance,
+                    'vault_balance' => $user->eur_vault_cents / 100,
                     'has_vault_pin' => ! empty($user->vault_pin),
                     'referral_code' => $user->referral_code,
                     'sound_enabled' => (bool) $user->sound_enabled,
                     'pending_crates_count' => $user->crates()->where('status', 'pending')->count(),
                     'last_daily_bonus_at' => $user->last_daily_bonus_at?->toIso8601String(),
-                    'can_claim_daily_bonus' => $user->canClaimDailyBonus(),
+                    'can_claim_daily_bonus' => false,
                     'next_daily_bonus_at' => $user->nextDailyBonusAt()?->toIso8601String(),
                 ] : null,
             ],
@@ -71,6 +77,7 @@ class HandleInertiaRequests extends Middleware
                 'success' => fn () => $request->session()->get('success'),
             ],
             'app_name' => config('app.name', 'NEONWIN'),
+            'welcomeOffer' => $welcomeOffer?->available() ? $welcomeOffer->only(['percent_bps', 'min_deposit_cents', 'max_bonus_cents', 'terms']) : null,
         ]);
     }
 }

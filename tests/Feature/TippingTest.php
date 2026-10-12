@@ -2,7 +2,6 @@
 
 namespace Tests\Feature;
 
-use App\Models\TippingTransaction;
 use App\Models\User;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Tests\TestCase;
@@ -14,11 +13,11 @@ class TippingTest extends TestCase
     public function test_user_can_tip_another_player_by_user_code_with_fee(): void
     {
         $sender = User::factory()->create([
-            'game_balance' => 10000000.00,
+            'eur_balance_cents' => 1000000000,
         ]);
 
         $recipient = User::factory()->create([
-            'game_balance' => 5000000.00,
+            'eur_balance_cents' => 500000000,
             'user_code' => 'NW-LUCKY99',
             'name' => 'LuckyPlayer',
         ]);
@@ -38,23 +37,20 @@ class TippingTest extends TestCase
         ]);
 
         $sender->refresh();
-        $this->assertEquals(8000000.00, $sender->game_balance);
+        $this->assertEquals(800000000, $sender->eur_balance_cents);
 
         $recipient->refresh();
-        $this->assertEquals(6940000.00, $recipient->game_balance);
+        $this->assertEquals(694000000, $recipient->eur_balance_cents);
 
-        $transaction = TippingTransaction::where('sender_id', $sender->id)->first();
-        $this->assertNotNull($transaction);
-        $this->assertEquals(2000000.00, $transaction->amount_sc);
-        $this->assertEquals(60000.00, $transaction->fee_sc);
-        $this->assertEquals(1940000.00, $transaction->net_amount_sc);
-        $this->assertEquals('Good luck in Sugar Rush!', $transaction->note);
+        $this->assertDatabaseCount('wallet_entries', 2);
+        $this->assertDatabaseHas('wallet_entries', ['user_id' => $sender->id, 'delta_cents' => -200000000, 'kind' => 'tip_sent']);
+        $this->assertDatabaseHas('wallet_entries', ['user_id' => $recipient->id, 'delta_cents' => 194000000, 'kind' => 'tip_received']);
     }
 
     public function test_user_cannot_tip_themselves(): void
     {
         $user = User::factory()->create([
-            'game_balance' => 10000000.00,
+            'eur_balance_cents' => 1000000000,
             'user_code' => 'NW-MYSELF',
         ]);
 
@@ -69,7 +65,7 @@ class TippingTest extends TestCase
     public function test_user_cannot_tip_more_than_balance(): void
     {
         $sender = User::factory()->create([
-            'game_balance' => 100000.00,
+            'eur_balance_cents' => 10000000,
         ]);
 
         $recipient = User::factory()->create([

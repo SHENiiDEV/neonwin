@@ -1,18 +1,18 @@
 import React, { useState, useEffect } from 'react';
-import { useForm, router, Link } from '@inertiajs/react';
-import { 
-    X, 
-    Lock, 
-    Mail, 
-    User, 
-    Sparkles, 
-    Zap, 
-    ArrowRight, 
-    ShieldCheck, 
-    Eye, 
-    EyeOff, 
-    Coins, 
-    Gift, 
+import { useForm, usePage, Link } from '@inertiajs/react';
+import {
+    X,
+    Lock,
+    Mail,
+    User,
+    Sparkles,
+    Zap,
+    ArrowRight,
+    ShieldCheck,
+    Eye,
+    EyeOff,
+    Coins,
+    Gift,
     Phone,
     Calendar,
     MapPin,
@@ -25,6 +25,7 @@ import {
 import { WORLD_COUNTRIES } from '../../constants/countries';
 
 export default function AuthModal({ isOpen, onClose, initialMode = 'login' }) {
+    const { welcomeOffer } = usePage().props;
     const [mode, setMode] = useState(initialMode); // 'login' | 'register'
     const [showPassword, setShowPassword] = useState(false);
 
@@ -42,6 +43,9 @@ export default function AuthModal({ isOpen, onClose, initialMode = 'login' }) {
         surname: '',
         email: '',
         phone: '',
+        contact_channel: '',
+        contact_handle: '',
+        contact_consent: false,
         date_of_birth: '',
         street: '',
         city: '',
@@ -49,6 +53,7 @@ export default function AuthModal({ isOpen, onClose, initialMode = 'login' }) {
         postcode: '',
         password: '',
         terms: false,
+        promo_code: '',
     });
 
     if (!isOpen) return null;
@@ -70,111 +75,77 @@ export default function AuthModal({ isOpen, onClose, initialMode = 'login' }) {
     };
 
     return (
-        <div 
-            className="nw-topup-backdrop" 
+        <div
+            className="nw-topup-backdrop"
             onClick={e => { if (e.target === e.currentTarget) onClose(); }}
         >
-            <section 
-                role="dialog" 
-                aria-modal="true" 
-                aria-labelledby="auth-modal-title" 
-                aria-describedby="auth-modal-description" 
-                className="nw-topup"
-                style={{ width: mode === 'register' ? '980px' : '880px' }}
+            <section
+                role="dialog"
+                aria-modal="true"
+                aria-labelledby="auth-modal-title"
+                aria-describedby="auth-modal-description"
+                className={`nw-topup nw-auth-modal ${mode === 'register' ? 'is-register' : ''}`}
             >
                 {/* Close Button */}
-                <button 
-                    onClick={onClose} 
-                    aria-label="Close authentication dialog" 
+                <button
+                    onClick={onClose}
+                    aria-label="Close authentication dialog"
                     className="nw-topup-close"
                 >
                     <X size={18} />
                 </button>
 
-                {/* Left Story Sidebar (Amethyst & Gold signature style) */}
-                <aside className="nw-topup-story">
-                    <div className="nw-topup-story-copy">
-                        <span className="nw-eyebrow">
-                            <Sparkles size={13} className="text-yellow-400" /> 
-                            {mode === 'register' ? 'CREATE PLAYER ACCOUNT' : 'WELCOME BACK'}
-                        </span>
-
-                        {mode === 'register' ? (
-                            <>
-                                <h2>Your world of play.<br /><em>Join Neonwin today.</em></h2>
-                                <p>Instant verified registration.<br />Explore 1,500+ slots, daily 0.02 SC login gifts, and VIP cashback.</p>
-                            </>
-                        ) : (
-                            <>
-                                <h2>Good times await.<br /><em>Jump into the action.</em></h2>
-                                <p>Access your wallet balance,<br />favorite slot games and VIP progression in one click.</p>
-                            </>
-                        )}
-
-                        {/* Member Perks Box */}
-                        <div className="nw-topup-balance space-y-2.5">
-                            <span className="text-[10px] text-[#b6a3c5] uppercase font-bold tracking-wider block">
-                                Verified Member Benefits
-                            </span>
-                            
-                            <div className="flex items-center gap-2 text-xs text-white">
-                                <Coins size={15} className="text-yellow-400 flex-shrink-0" />
-                                <span><strong>0.02 SC Free</strong> Daily Login Gift</span>
-                            </div>
-
-                            <div className="flex items-center gap-2 text-xs text-white">
-                                <ShieldCheck size={15} className="text-emerald-400 flex-shrink-0" />
-                                <span><strong>0x Wagering</strong> on All Rewards</span>
-                            </div>
-
-                            <div className="flex items-center gap-2 text-xs text-white">
-                                <Zap size={15} className="text-cyan-400 flex-shrink-0" />
-                                <span><strong>Fast Redemptions</strong> with Full Verification</span>
-                            </div>
-                        </div>
+                <aside className="nw-topup-story nw-auth-story">
+                    <div className="nw-auth-story-content">
+                        <span className="nw-eyebrow"><Sparkles size={14} /> YOUR NEONWIN ADVANTAGE</span>
+                        <h2>Your account.<br /><em>More possibilities.</em></h2>
+                        <p>Casino favorites and Sportsbook, together in one place.</p>
+                        {welcomeOffer && <div className="nw-auth-offer">
+                            <span>FIRST DEPOSIT OFFER</span>
+                            <strong>+{welcomeOffer.percent_bps / 100}<small>%</small></strong>
+                            <p>Extra on your first confirmed deposit.</p>
+                            <span className="nw-auth-offer-detail">{welcomeOffer.min_deposit_cents > 0 && `Minimum €${(welcomeOffer.min_deposit_cents / 100).toFixed(2)}. `}{welcomeOffer.max_bonus_cents !== null && `Bonus up to €${(welcomeOffer.max_bonus_cents / 100).toFixed(2)}. `}Once per account. Offers do not stack.</span>
+                            <details><summary>Offer terms</summary><p>{welcomeOffer.terms}</p></details>
+                        </div>}
+                        <ul className="nw-auth-benefits">
+                            <li><Coins size={20} /><div><strong>One EUR wallet</strong><span>A shared balance for casino and sports.</span></div></li>
+                            <li><Gift size={20} /><div><strong>A code. A little extra.</strong><span>Register with an eligible promo code for a deposit offer or FreeSpins.</span></div></li>
+                            <li><ShieldCheck size={20} /><div><strong>Your documents stay private</strong><span>Identity uploads are available to you and authorized reviewers.</span></div></li>
+                        </ul>
+                        <p className="nw-auth-notice">Payments and withdrawals are currently unavailable. Deposit bonuses apply after verified payment.</p>
                     </div>
-
-                    {/* Mascot Illustration */}
-                    <img 
-                        src="/images/landing/neon-lucky-cat.png" 
-                        alt="Neonwin Lucky Mascot" 
-                        className="nw-topup-art" 
-                    />
-
-                    <span className="nw-topup-story-foot">
-                        <span>✦</span> 100% PROVABLY FAIR SOCIAL GAMING
-                    </span>
+                    <span className="nw-auth-story-footer">PLAY RESPONSIBLY · ADULTS 18+</span>
                 </aside>
 
                 {/* Right Main Panel */}
                 <div className="nw-topup-main">
                     <header className="nw-topup-heading">
                         <span className="nw-topup-kicker">
-                            <Zap size={13} /> INSTANT & SECURE ACCESS 
-                            <span><ShieldCheck size={11} /> 256-bit SSL</span>
+                            <Zap size={13} /> YOUR PLAYER ACCOUNT
+                            <span><ShieldCheck size={11} /> Private account</span>
                         </span>
                         <h2 id="auth-modal-title">
-                            {mode === 'register' ? 'Register your player profile.' : 'Sign in to your wallet.'}
+                            {mode === 'register' ? 'Make it your account.' : 'Welcome back.'}
                         </h2>
                         <p id="auth-modal-description">
-                            {mode === 'register' 
-                                ? 'Complete your verified details below to enable seamless payments & redemptions.' 
+                            {mode === 'register'
+                                ? 'Create your account and add a registration promo code if you have one.'
                                 : 'Enter your email and password to access your player account and games.'}
                         </p>
                     </header>
 
                     {/* Mode Tabs */}
                     <div className="nw-topup-tabs" role="group" aria-label="Authentication mode">
-                        <button 
-                            aria-pressed={mode === 'login'} 
-                            onClick={() => setMode('login')} 
+                        <button
+                            aria-pressed={mode === 'login'}
+                            onClick={() => setMode('login')}
                             className={mode === 'login' ? 'is-active' : ''}
                         >
                             <User size={16} /> Sign In
                         </button>
-                        <button 
-                            aria-pressed={mode === 'register'} 
-                            onClick={() => setMode('register')} 
+                        <button
+                            aria-pressed={mode === 'register'}
+                            onClick={() => setMode('register')}
                             className={mode === 'register' ? 'is-active' : ''}
                         >
                             <Sparkles size={16} /> Register Profile
@@ -185,10 +156,12 @@ export default function AuthModal({ isOpen, onClose, initialMode = 'login' }) {
                     {mode === 'login' ? (
                         <form onSubmit={handleLogin} className="mt-5 space-y-4">
                             <div className="space-y-1.5">
-                                <label className="text-xs font-semibold text-gray-300 block">Email Address</label>
+                                <label htmlFor="login-email" className="text-xs font-semibold text-gray-300 block">Email address</label>
                                 <div className="relative">
                                     <Mail className="w-4 h-4 text-gray-500 absolute left-3.5 top-1/2 -translate-y-1/2" />
-                                    <input 
+                                    <input
+                                        id="login-email"
+                                        autoComplete="email"
                                         type="email"
                                         required
                                         value={loginForm.data.email}
@@ -198,15 +171,17 @@ export default function AuthModal({ isOpen, onClose, initialMode = 'login' }) {
                                     />
                                 </div>
                                 {loginForm.errors.email && (
-                                    <p className="text-[10px] text-rose-400">{loginForm.errors.email}</p>
+                                    <p className="text-xs text-rose-400">{loginForm.errors.email}</p>
                                 )}
                             </div>
 
                             <div className="space-y-1.5">
-                                <label className="text-xs font-semibold text-gray-300 block">Password</label>
+                                <label htmlFor="login-password" className="text-xs font-semibold text-gray-300 block">Password</label>
                                 <div className="relative">
                                     <Lock className="w-4 h-4 text-gray-500 absolute left-3.5 top-1/2 -translate-y-1/2" />
-                                    <input 
+                                    <input
+                                        id="login-password"
+                                        autoComplete="current-password"
                                         type={showPassword ? 'text' : 'password'}
                                         required
                                         value={loginForm.data.password}
@@ -214,8 +189,9 @@ export default function AuthModal({ isOpen, onClose, initialMode = 'login' }) {
                                         placeholder="••••••••"
                                         className="w-full pl-10 pr-10 py-2.5 rounded-xl bg-[#1c1626] border border-[#3f2f4e] text-white placeholder-gray-500 text-xs focus:outline-none focus:border-purple-400 transition"
                                     />
-                                    <button 
-                                        type="button" 
+                                    <button
+                                        type="button"
+                                        aria-label={showPassword ? 'Hide password' : 'Show password'}
                                         onClick={() => setShowPassword(!showPassword)}
                                         className="absolute right-3.5 top-1/2 -translate-y-1/2 text-gray-500 hover:text-gray-300"
                                         tabIndex={-1}
@@ -224,7 +200,7 @@ export default function AuthModal({ isOpen, onClose, initialMode = 'login' }) {
                                     </button>
                                 </div>
                                 {loginForm.errors.password && (
-                                    <p className="text-[10px] text-rose-400">{loginForm.errors.password}</p>
+                                    <p className="text-xs text-rose-400">{loginForm.errors.password}</p>
                                 )}
                             </div>
 
@@ -253,54 +229,55 @@ export default function AuthModal({ isOpen, onClose, initialMode = 'login' }) {
                     ) : (
                         /* EXPANDED VERIFIED REGISTER FORM */
                         <form onSubmit={handleRegister} className="mt-4 space-y-4">
-                            <div className="max-h-[400px] overflow-y-auto no-scrollbar space-y-4 pr-1">
-                                
+                            <div className="space-y-4 pr-1">
+
                                 {/* 1. Account Credentials */}
                                 <div className="space-y-3 p-3.5 rounded-2xl bg-[#181322] border border-[#352542]">
                                     <span className="text-[10px] font-bold text-yellow-400 uppercase tracking-wider block">
                                         1. Account Credentials
                                     </span>
-                                    
+
                                     <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                                         <div className="space-y-1">
                                             <label className="text-[11px] font-semibold text-gray-300 block">Email Address *</label>
                                             <div className="relative">
                                                 <Mail className="w-3.5 h-3.5 text-gray-500 absolute left-3 top-1/2 -translate-y-1/2" />
-                                                <input 
+                                                <input
                                                     type="email"
                                                     required
-                                                    value={registerForm.data.email}
+                                                    aria-label="Email address" value={registerForm.data.email}
                                                     onChange={e => registerForm.setData('email', e.target.value)}
                                                     placeholder="player@example.com"
                                                     className="w-full pl-9 pr-3 py-2 rounded-xl bg-[#14101e] border border-[#3b2d49] text-white placeholder-gray-500 text-xs focus:outline-none focus:border-purple-400"
                                                 />
                                             </div>
-                                            {registerForm.errors.email && <p className="text-[10px] text-rose-400">{registerForm.errors.email}</p>}
+                                            {registerForm.errors.email && <p className="text-xs text-rose-400">{registerForm.errors.email}</p>}
                                         </div>
 
                                         <div className="space-y-1">
                                             <label className="text-[11px] font-semibold text-gray-300 block">Password (min. 6) *</label>
                                             <div className="relative">
                                                 <Lock className="w-3.5 h-3.5 text-gray-500 absolute left-3 top-1/2 -translate-y-1/2" />
-                                                <input 
+                                                <input
                                                     type={showPassword ? 'text' : 'password'}
                                                     required
                                                     minLength={6}
-                                                    value={registerForm.data.password}
+                                                    aria-label="Create password" value={registerForm.data.password}
                                                     onChange={e => registerForm.setData('password', e.target.value)}
                                                     placeholder="••••••••"
                                                     className="w-full pl-9 pr-9 py-2 rounded-xl bg-[#14101e] border border-[#3b2d49] text-white placeholder-gray-500 text-xs focus:outline-none focus:border-purple-400"
                                                 />
-                                                <button 
-                                                    type="button" 
-                                                    onClick={() => setShowPassword(!showPassword)}
+                                                <button
+                                                    type="button"
+                                                    aria-label={showPassword ? 'Hide password' : 'Show password'}
+                                        onClick={() => setShowPassword(!showPassword)}
                                                     className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-500 hover:text-gray-300"
                                                     tabIndex={-1}
                                                 >
                                                     {showPassword ? <EyeOff size={14} /> : <Eye size={14} />}
                                                 </button>
                                             </div>
-                                            {registerForm.errors.password && <p className="text-[10px] text-rose-400">{registerForm.errors.password}</p>}
+                                            {registerForm.errors.password && <p className="text-xs text-rose-400">{registerForm.errors.password}</p>}
                                         </div>
                                     </div>
                                 </div>
@@ -316,63 +293,63 @@ export default function AuthModal({ isOpen, onClose, initialMode = 'login' }) {
                                             <label className="text-[11px] font-semibold text-gray-300 block">First Name *</label>
                                             <div className="relative">
                                                 <User className="w-3.5 h-3.5 text-gray-500 absolute left-3 top-1/2 -translate-y-1/2" />
-                                                <input 
+                                                <input
                                                     type="text"
                                                     required
-                                                    value={registerForm.data.name}
+                                                    aria-label="First name" value={registerForm.data.name}
                                                     onChange={e => registerForm.setData('name', e.target.value)}
                                                     placeholder="John"
                                                     className="w-full pl-9 pr-3 py-2 rounded-xl bg-[#14101e] border border-[#3b2d49] text-white placeholder-gray-500 text-xs focus:outline-none focus:border-purple-400"
                                                 />
                                             </div>
-                                            {registerForm.errors.name && <p className="text-[10px] text-rose-400">{registerForm.errors.name}</p>}
+                                            {registerForm.errors.name && <p className="text-xs text-rose-400">{registerForm.errors.name}</p>}
                                         </div>
 
                                         <div className="space-y-1">
                                             <label className="text-[11px] font-semibold text-gray-300 block">Surname (Last Name) *</label>
                                             <div className="relative">
                                                 <User className="w-3.5 h-3.5 text-gray-500 absolute left-3 top-1/2 -translate-y-1/2" />
-                                                <input 
+                                                <input
                                                     type="text"
                                                     required
-                                                    value={registerForm.data.surname}
+                                                    aria-label="Surname" value={registerForm.data.surname}
                                                     onChange={e => registerForm.setData('surname', e.target.value)}
                                                     placeholder="Doe"
                                                     className="w-full pl-9 pr-3 py-2 rounded-xl bg-[#14101e] border border-[#3b2d49] text-white placeholder-gray-500 text-xs focus:outline-none focus:border-purple-400"
                                                 />
                                             </div>
-                                            {registerForm.errors.surname && <p className="text-[10px] text-rose-400">{registerForm.errors.surname}</p>}
+                                            {registerForm.errors.surname && <p className="text-xs text-rose-400">{registerForm.errors.surname}</p>}
                                         </div>
 
                                         <div className="space-y-1">
                                             <label className="text-[11px] font-semibold text-gray-300 block">Phone Number *</label>
                                             <div className="relative">
                                                 <Phone className="w-3.5 h-3.5 text-gray-500 absolute left-3 top-1/2 -translate-y-1/2" />
-                                                <input 
+                                                <input
                                                     type="tel"
                                                     required
-                                                    value={registerForm.data.phone}
+                                                    aria-label="Phone number" value={registerForm.data.phone}
                                                     onChange={e => registerForm.setData('phone', e.target.value)}
                                                     placeholder="+357 99 123456"
                                                     className="w-full pl-9 pr-3 py-2 rounded-xl bg-[#14101e] border border-[#3b2d49] text-white placeholder-gray-500 text-xs focus:outline-none focus:border-purple-400"
                                                 />
                                             </div>
-                                            {registerForm.errors.phone && <p className="text-[10px] text-rose-400">{registerForm.errors.phone}</p>}
+                                            {registerForm.errors.phone && <p className="text-xs text-rose-400">{registerForm.errors.phone}</p>}
                                         </div>
 
                                         <div className="space-y-1">
                                             <label className="text-[11px] font-semibold text-gray-300 block">Date of Birth (18+) *</label>
                                             <div className="relative">
                                                 <Calendar className="w-3.5 h-3.5 text-gray-500 absolute left-3 top-1/2 -translate-y-1/2" />
-                                                <input 
+                                                <input
                                                     type="date"
                                                     required
-                                                    value={registerForm.data.date_of_birth}
+                                                    aria-label="Date of birth" value={registerForm.data.date_of_birth}
                                                     onChange={e => registerForm.setData('date_of_birth', e.target.value)}
                                                     className="w-full pl-9 pr-3 py-2 rounded-xl bg-[#14101e] border border-[#3b2d49] text-white placeholder-gray-500 text-xs focus:outline-none focus:border-purple-400"
                                                 />
                                             </div>
-                                            {registerForm.errors.date_of_birth && <p className="text-[10px] text-rose-400">{registerForm.errors.date_of_birth}</p>}
+                                            {registerForm.errors.date_of_birth && <p className="text-xs text-rose-400">{registerForm.errors.date_of_birth}</p>}
                                         </div>
                                     </div>
                                 </div>
@@ -388,16 +365,16 @@ export default function AuthModal({ isOpen, onClose, initialMode = 'login' }) {
                                         <label className="text-[11px] font-semibold text-gray-300 block">1. Street, House & Apt Number *</label>
                                         <div className="relative">
                                             <MapPin className="w-3.5 h-3.5 text-gray-500 absolute left-3 top-1/2 -translate-y-1/2" />
-                                            <input 
+                                            <input
                                                 type="text"
                                                 required
-                                                value={registerForm.data.street}
+                                                aria-label="Street address" value={registerForm.data.street}
                                                 onChange={e => registerForm.setData('street', e.target.value)}
                                                 placeholder="Agiou Pavlou 15, Apt 302"
                                                 className="w-full pl-9 pr-3 py-2 rounded-xl bg-[#14101e] border border-[#3b2d49] text-white placeholder-gray-500 text-xs focus:outline-none focus:border-purple-400"
                                             />
                                         </div>
-                                        {registerForm.errors.street && <p className="text-[10px] text-rose-400">{registerForm.errors.street}</p>}
+                                        {registerForm.errors.street && <p className="text-xs text-rose-400">{registerForm.errors.street}</p>}
                                     </div>
 
                                     <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
@@ -406,16 +383,16 @@ export default function AuthModal({ isOpen, onClose, initialMode = 'login' }) {
                                             <label className="text-[11px] font-semibold text-gray-300 block">2. City *</label>
                                             <div className="relative">
                                                 <Building className="w-3.5 h-3.5 text-gray-500 absolute left-3 top-1/2 -translate-y-1/2" />
-                                                <input 
+                                                <input
                                                     type="text"
                                                     required
-                                                    value={registerForm.data.city}
+                                                    aria-label="City" value={registerForm.data.city}
                                                     onChange={e => registerForm.setData('city', e.target.value)}
                                                     placeholder="Nicosia"
                                                     className="w-full pl-9 pr-3 py-2 rounded-xl bg-[#14101e] border border-[#3b2d49] text-white placeholder-gray-500 text-xs focus:outline-none focus:border-purple-400"
                                                 />
                                             </div>
-                                            {registerForm.errors.city && <p className="text-[10px] text-rose-400">{registerForm.errors.city}</p>}
+                                            {registerForm.errors.city && <p className="text-xs text-rose-400">{registerForm.errors.city}</p>}
                                         </div>
 
                                         {/* 3. Country Dropdown */}
@@ -423,9 +400,9 @@ export default function AuthModal({ isOpen, onClose, initialMode = 'login' }) {
                                             <label className="text-[11px] font-semibold text-gray-300 block">3. Country *</label>
                                             <div className="relative">
                                                 <Globe className="w-3.5 h-3.5 text-gray-500 absolute left-3 top-1/2 -translate-y-1/2" />
-                                                <select 
+                                                <select
                                                     required
-                                                    value={registerForm.data.country}
+                                                    aria-label="Country" value={registerForm.data.country}
                                                     onChange={e => registerForm.setData('country', e.target.value)}
                                                     className="w-full pl-9 pr-3 py-2 rounded-xl bg-[#14101e] border border-[#3b2d49] text-white text-xs focus:outline-none focus:border-purple-400"
                                                 >
@@ -436,29 +413,43 @@ export default function AuthModal({ isOpen, onClose, initialMode = 'login' }) {
                                                     ))}
                                                 </select>
                                             </div>
-                                            {registerForm.errors.country && <p className="text-[10px] text-rose-400">{registerForm.errors.country}</p>}
+                                            {registerForm.errors.country && <p className="text-xs text-rose-400">{registerForm.errors.country}</p>}
                                         </div>
 
                                         {/* 4. Post Code */}
                                         <div className="space-y-1">
                                             <label className="text-[11px] font-semibold text-gray-300 block">4. Post Code / ZIP *</label>
-                                            <input 
+                                            <input
                                                 type="text"
                                                 required
-                                                value={registerForm.data.postcode}
+                                                aria-label="Postcode" value={registerForm.data.postcode}
                                                 onChange={e => registerForm.setData('postcode', e.target.value)}
                                                 placeholder="1105"
                                                 className="w-full px-3 py-2 rounded-xl bg-[#14101e] border border-[#3b2d49] text-white placeholder-gray-500 text-xs focus:outline-none focus:border-purple-400"
                                             />
-                                            {registerForm.errors.postcode && <p className="text-[10px] text-rose-400">{registerForm.errors.postcode}</p>}
+                                            {registerForm.errors.postcode && <p className="text-xs text-rose-400">{registerForm.errors.postcode}</p>}
                                         </div>
                                     </div>
                                 </div>
 
+                                <fieldset className="rounded-2xl border border-purple-300/15 bg-[#14101e] p-4 flex flex-col gap-4">
+                                    <legend className="px-2 text-sm text-purple-200">Stay in touch <span className="text-gray-500 text-xs">(optional)</span></legend>
+                                    <label className="text-xs text-gray-300 flex flex-col gap-2">Preferred contact channel
+                                        <select className="rounded-xl border border-[#3b2d49] bg-[#1c1626] p-3 text-white" value={registerForm.data.contact_channel} onChange={e => { registerForm.setData(data => ({ ...data, contact_channel: e.target.value, contact_handle: '', contact_consent: false })); }}>
+                                            <option value="">No preferred messenger</option><option value="whatsapp">WhatsApp</option><option value="telegram">Telegram</option>
+                                        </select>
+                                    </label>
+                                    {registerForm.data.contact_channel && <><label className="text-xs text-gray-300 flex flex-col gap-2">{registerForm.data.contact_channel === 'whatsapp' ? 'WhatsApp number · include country code' : 'Telegram username'}
+                                        <input required type="text" maxLength="40" className="rounded-xl border border-[#3b2d49] bg-[#1c1626] p-3 text-white" placeholder={registerForm.data.contact_channel === 'whatsapp' ? '+35799123456' : '@your_username'} value={registerForm.data.contact_handle} onChange={e => registerForm.setData('contact_handle', e.target.value)} />
+                                    </label><label className="flex items-start gap-3 text-xs text-gray-400 leading-6"><input type="checkbox" className="mt-1 accent-purple-500" checked={registerForm.data.contact_consent} onChange={e => registerForm.setData('contact_consent', e.target.checked)} />I agree to receive a welcome message and account follow-up through this messenger. This is optional.</label></>}
+                                    <p className="text-[11px] text-gray-500 leading-5">Your name, email and chosen contact may be sent to our restricted account-team Telegram group for registration follow-up. See our <Link href="/privacy" onClick={onClose} className="text-purple-300 underline">privacy policy</Link>. Contact support to change your contact preference or withdraw consent.</p>
+                                    {['contact_channel','contact_handle','contact_consent'].map(key => registerForm.errors[key] && <p key={key} role="alert" className="text-xs text-rose-400">{registerForm.errors[key]}</p>)}
+                                </fieldset>
+
                                 {/* Terms & Conditions Checkbox */}
                                 <div className="p-3 rounded-2xl bg-[#14101e] border border-[#332545]">
                                     <label className="flex items-start gap-2.5 text-xs text-gray-300 cursor-pointer select-none">
-                                        <input 
+                                        <input
                                             type="checkbox"
                                             required
                                             checked={registerForm.data.terms}
@@ -470,11 +461,16 @@ export default function AuthModal({ isOpen, onClose, initialMode = 'login' }) {
                                         </span>
                                     </label>
                                     {registerForm.errors.terms && (
-                                        <p className="text-[10px] text-rose-400 mt-1 pl-6">{registerForm.errors.terms}</p>
+                                        <p className="text-xs text-rose-400 mt-1 pl-6">{registerForm.errors.terms}</p>
                                     )}
                                 </div>
 
                             </div>
+
+                            <label className="block text-sm text-gray-300">Promo code <span className="text-gray-500">(optional)</span>
+                                <input autoComplete="off" value={registerForm.data.promo_code} onChange={e => registerForm.setData('promo_code', e.target.value.toUpperCase())} placeholder="Enter your registration code" className="block w-full rounded-xl border border-[#3f2f4e] bg-[#1c1626] p-3 mt-2 text-white" />
+                                {registerForm.errors.promo_code && <span role="alert" className="text-rose-400 text-xs block mt-2">{registerForm.errors.promo_code}</span>}
+                            </label>
 
                             {/* Submit Button */}
                             <div className="pt-2">
@@ -486,13 +482,13 @@ export default function AuthModal({ isOpen, onClose, initialMode = 'login' }) {
                                     {registerForm.processing ? (
                                         <>
                                             <span className="flex items-center gap-2">
-                                                <Loader2 size={16} className="animate-spin" /> Verifying and creating profile...
+                                                <Loader2 size={16} className="animate-spin" /> Creating your account...
                                             </span>
                                             <span />
                                         </>
                                     ) : (
                                         <>
-                                            <span>Complete Registration & Play</span>
+                                            <span>Create account</span>
                                             <ArrowRight size={16} />
                                         </>
                                     )}
@@ -502,13 +498,12 @@ export default function AuthModal({ isOpen, onClose, initialMode = 'login' }) {
                     )}
 
                     <footer className="nw-topup-foot">
-                        <span>18+ · Social Casino Play</span>
+                        <span>18+ · Play responsibly</span>
                         <div className="flex items-center gap-3">
                             <Link href="/privacy" onClick={onClose} className="hover:text-purple-300">Privacy</Link>
                             <span>•</span>
                             <Link href="/terms" onClick={onClose} className="hover:text-purple-300">Terms</Link>
-                            <span>•</span>
-                            <Link href="/sweeps-rules" onClick={onClose} className="hover:text-purple-300">Sweeps</Link>
+
                         </div>
                     </footer>
                 </div>

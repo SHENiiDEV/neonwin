@@ -11,6 +11,7 @@ class GameTransaction extends Model
 
     protected $fillable = [
         'transaction_id',
+        'agent_code', 'game_type', 'round_id', 'remote_transaction_id', 'currency', 'fingerprint',
         'user_id',
         'game_code',
         'provider_code',
@@ -21,6 +22,8 @@ class GameTransaction extends Model
         'type',
         'raw_payload',
     ];
+
+    protected $hidden = ['raw_payload'];
 
     protected $casts = [
         'bet_amount' => 'decimal:2',

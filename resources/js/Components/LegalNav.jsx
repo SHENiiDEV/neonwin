@@ -15,7 +15,7 @@ const legalLinks = [
     { name: 'About Neonwin', href: '/about', icon: Sparkles },
     { name: 'Terms of Service', href: '/terms', icon: FileText },
     { name: 'Privacy Policy', href: '/privacy', icon: Shield },
-    { name: 'Sweeps Rules', href: '/sweeps-rules', icon: Trophy },
+    { name: 'Promotions & bonuses', href: '/promotions', icon: Trophy },
     { name: 'Responsible Gaming', href: '/responsible-gaming', icon: HeartHandshake },
     { name: 'Help & FAQ', href: '/faq', icon: HelpCircle },
     { name: 'Contact Support', href: '/contact', icon: Mail },

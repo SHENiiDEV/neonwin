@@ -85,7 +85,7 @@ export default function VaultModal({ isOpen, onClose }) {
                     </div>
                     <div>
                         <h2 className="font-heading font-black text-xl sm:text-2xl text-white">Cyber Vault (Piggy Bank)</h2>
-                        <p className="text-xs text-gray-400">Lock and protect your SC bankroll from emotional play</p>
+                        <p className="text-xs text-gray-400">Lock and protect your EUR balance from emotional play</p>
                     </div>
                 </div>
 
@@ -94,14 +94,14 @@ export default function VaultModal({ isOpen, onClose }) {
                     <div className="p-4 rounded-2xl bg-[#1a1329] border border-[#3c2a4e]">
                         <span className="text-[10px] text-gray-400 uppercase font-bold tracking-wider">Playable Wallet</span>
                         <div className="font-heading font-black text-xl text-yellow-300 mt-1">
-                            {formatCoins(user?.game_balance)} <small className="text-xs text-yellow-500 font-mono">SC</small>
+                            {formatCoins(user?.game_balance)} <small className="text-xs text-yellow-500 font-mono">EUR</small>
                         </div>
                     </div>
 
                     <div className="p-4 rounded-2xl bg-cyan-950/30 border border-cyan-500/30">
                         <span className="text-[10px] text-cyan-300 uppercase font-bold tracking-wider">Vault Protected</span>
                         <div className="font-heading font-black text-xl text-cyan-300 mt-1">
-                            {formatCoins(user?.vault_balance)} <small className="text-xs text-cyan-400 font-mono">SC</small>
+                            {formatCoins(user?.vault_balance)} <small className="text-xs text-cyan-400 font-mono">EUR</small>
                         </div>
                     </div>
                 </div>
@@ -151,7 +151,7 @@ export default function VaultModal({ isOpen, onClose }) {
                 {activeTab === 'deposit' && (
                     <form onSubmit={handleDeposit} className="space-y-4">
                         <div>
-                            <label className="block text-xs font-bold text-gray-300 mb-1.5">Amount to Lock (SC)</label>
+                            <label className="block text-xs font-bold text-gray-300 mb-1.5">Amount to Lock (EUR)</label>
                             <div className="relative">
                                 <input
                                     type="number"
@@ -188,7 +188,7 @@ export default function VaultModal({ isOpen, onClose }) {
                 {activeTab === 'withdraw' && (
                     <form onSubmit={handleWithdraw} className="space-y-4">
                         <div>
-                            <label className="block text-xs font-bold text-gray-300 mb-1.5">Amount to Release (SC)</label>
+                            <label className="block text-xs font-bold text-gray-300 mb-1.5">Amount to Release (EUR)</label>
                             <div className="relative">
                                 <input
                                     type="number"
@@ -242,7 +242,7 @@ export default function VaultModal({ isOpen, onClose }) {
                 {activeTab === 'security' && (
                     <form onSubmit={handleSetPin} className="space-y-4">
                         <p className="text-xs text-gray-300">
-                            Set a 4-digit PIN to prevent impulsive withdrawals while gaming.
+                            Set a 4-digit PIN to prevent impulsive vault transfers while gaming.
                         </p>
 
                         <div>

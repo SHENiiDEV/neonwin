@@ -14,11 +14,11 @@ function WalletBalanceDisplay({ balance = 0 }) {
     const fontSize = formatted.length > 14 ? '14px' : (formatted.length > 10 ? '17px' : '21px');
 
     return (
-        <div className="nw-wallet-balance" title={`${formatted} SC`}>
+        <div className="nw-wallet-balance" title={`${formatted} EUR`}>
             <span style={{ fontSize, color: '#ffffff', fontWeight: 800, fontVariantNumeric: 'tabular-nums' }}>
                 {formatted}
             </span>
-            <small style={{ color: '#facc15', fontWeight: 800 }}>SC</small>
+            <small style={{ color: '#facc15', fontWeight: 800 }}>EUR</small>
         </div>
     );
 }
@@ -26,6 +26,7 @@ function WalletBalanceDisplay({ balance = 0 }) {
 export default function Sidebar({ isOpen, setIsOpen, onOpenDeposit, onOpenVip, onOpenCrates, onOpenVault, onOpenTip }) {
     const { auth, filters = {} } = usePage().props;
     const category = filters.category || 'all';
+    const pathname = usePage().url.split('?')[0];
     const links = [
         ['all', 'Casino lobby', LayoutGrid], ['slots', 'Slots', Cherry], ['live', 'Live casino', Radio],
         ['crash', 'Crash & fast games', Rocket], ['fishing', 'Fish hunter', Fish], ['popular', 'Popular games', Flame],
@@ -36,35 +37,34 @@ export default function Sidebar({ isOpen, setIsOpen, onOpenDeposit, onOpenVip, o
             <div className="nw-wallet">
                 <div className="flex items-center justify-between mb-1.5">
                     <span className="nw-eyebrow" style={{ margin: 0 }}>YOUR PLAY WALLET</span>
-                    <span className="px-1.5 py-0.5 rounded bg-yellow-400/20 text-yellow-300 font-mono font-bold text-[9px]">SC</span>
+                    <span className="px-1.5 py-0.5 rounded bg-yellow-400/20 text-yellow-300 font-mono font-bold text-[9px]">EUR</span>
                 </div>
                 <Link href={auth?.user ? "/profile" : "#"} onClick={() => setIsOpen(false)} className="block hover:opacity-85 transition min-w-0 w-full mb-1">
                     <WalletBalanceDisplay balance={auth?.user?.game_balance} />
                 </Link>
-                <button onClick={onOpenDeposit} className="nw-button nw-button-purple w-full mt-2"><Gift size={15} /> Get Sweeps Coins</button>
+                <button onClick={onOpenDeposit} className="nw-button nw-button-purple w-full mt-2"><Gift size={15} /> Open cashier</button>
             </div>
 
 
             <nav className="nw-navigation">
                 <span className="nw-nav-label">LET’S PLAY</span>
-                {links.map(([id, label, Icon]) => <Link key={id} href={`/?category=${id}`} onClick={() => setIsOpen(false)} className={`nw-nav-link ${category === id ? 'is-active' : ''}`}><Icon size={18} /><span>{label}</span>{id === 'live' && <i className="nw-live-dot" />}{id === 'slots' && <span className="nw-nav-tag">HOT</span>}</Link>)}
-                <span className="nw-nav-label nw-nav-divider">MORE TO DISCOVER</span>
+                {links.map(([id, label, Icon]) => <Link key={id} href={`/?category=${id}`} onClick={() => setIsOpen(false)} className={`nw-nav-link ${pathname === '/' && category === id ? 'is-active' : ''}`}><Icon size={18} /><span>{label}</span>{id === 'live' && <i className="nw-live-dot" />}{id === 'slots' && <span className="nw-nav-tag">HOT</span>}</Link>)}
+                <Link href="/sportsbook" className="nw-nav-link" onClick={() => setIsOpen(false)}><Trophy size={18} /><span>Sportsbook</span></Link><span className="nw-nav-label nw-nav-divider">YOUR ACCOUNT</span>
                 {auth?.user && (
                     <>
                         <Link className="nw-nav-link" href="/profile" onClick={() => setIsOpen(false)}>
                             <Zap size={18} className="text-purple-400" /><span>Player profile & stats</span>
                         </Link>
-                        <button className="nw-nav-link" onClick={() => { setIsOpen(false); onOpenCrates(); }}>
-                            <Gift size={18} className="text-yellow-400" /><span>Cyber Crates</span>{auth.user.pending_crates_count > 0 && <span className="nw-nav-tag">NEW</span>}
-                        </button>
                         <button className="nw-nav-link" onClick={() => { setIsOpen(false); onOpenVault(); }}>
-                            <ShieldCheck size={18} className="text-cyan-400" /><span>Piggy Bank Vault</span>
+                            <ShieldCheck size={18} className="text-cyan-400" /><span>EUR Vault</span>
                         </button>
                     </>
                 )}
-                <button className="nw-nav-link" onClick={onOpenDeposit}><Gift size={18} /><span>Bonuses & rewards</span></button>
+                {auth?.user && <Link className="nw-nav-link" href="/profile?section=verification"><ShieldCheck size={18} /><span>Identity verification</span></Link>}
+                {auth?.user?.is_admin && <Link className="nw-nav-link" href="/admin"><ShieldCheck size={18} /><span>Administration</span></Link>}
+                <Link className={`nw-nav-link ${pathname === "/wheel" ? "is-active" : ""}`} href="/wheel" onClick={() => setIsOpen(false)}><Gift size={18} className="text-amber-200" /><span>Daily wheel</span><span className="nw-nav-tag">FREE</span></Link>
                 <Link className="nw-nav-link" href="/#tournaments-section" onClick={() => setIsOpen(false)}><Trophy size={18} /><span>Tournaments</span></Link>
-                <button className="nw-nav-link" onClick={onOpenVip}><Crown size={18} /><span>VIP club</span><ChevronRight size={14} /></button>
+                <button className={`nw-nav-link ${pathname === "/vip" ? "is-active" : ""}`} onClick={onOpenVip}><Crown size={18} /><span>VIP club</span><ChevronRight size={14} /></button>
             </nav>
             <button className="nw-sidebar-promo" onClick={onOpenVip}><Crown size={30} /><span className="nw-eyebrow">THE INNER CIRCLE</span><strong>A little more VIP.<br />A lot more you.</strong><span>Explore your benefits <ChevronRight size={14} /></span></button>
             <div className="nw-sidebar-bottom"><Link className="nw-nav-link" href="/contact" onClick={() => setIsOpen(false)}><Headphones size={17} /><span>Help & support</span><i className="nw-live-dot" /></Link><Link href="/responsible-gaming" onClick={() => setIsOpen(false)}><ShieldCheck size={14} /> Play responsibly <b>18+</b></Link></div>

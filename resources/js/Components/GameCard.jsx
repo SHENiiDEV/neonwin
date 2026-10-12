@@ -2,26 +2,11 @@ import React, { useState } from 'react';
 import { Link, usePage } from '@inertiajs/react';
 import { Play, Flame, Heart } from 'lucide-react';
 
-const getFallbackBanner = (game) => {
-    const code = game.game_code || game.slug;
-    const provider = (game.provider_code || '').toUpperCase();
-    if (provider.includes('PGSOFT')) {
-        return `https://assets.bd34fgabh.com/img/pgsoft/${code}.jpg`;
-    }
-    if (provider.includes('HACKSAW')) {
-        return `https://www-live.hacksawgaming.com/casino_thumbnails/${code}.jpg`;
-    }
-    if (provider.includes('SPRIBE')) {
-        return `https://spribe.co/assets/games/${code}/thumbnail.png`;
-    }
-    return `https://assets.bd34fgabh.com/apps/game-assets/${code}/${code}_800x600_NB.avif`;
-};
-
 export default function GameCard({ game }) {
     const { auth } = usePage().props;
     const [favorite, setFavorite] = useState(() => { try { return JSON.parse(localStorage.getItem('neonwin-favorites') || '[]').includes(game.id); } catch { return false; } });
     const [imageError, setImageError] = useState(false);
-    const imageSrc = game.banner_url || getFallbackBanner(game);
+    const imageSrc = game.banner_url || '';
 
     const toggleFavorite = () => {
         const nextState = !favorite;

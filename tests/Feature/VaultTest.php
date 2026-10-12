@@ -14,8 +14,8 @@ class VaultTest extends TestCase
     public function test_user_can_deposit_to_vault(): void
     {
         $user = User::factory()->create([
-            'game_balance' => 10000000.00,
-            'vault_balance' => 0.00,
+            'eur_balance_cents' => 1000000000,
+            'eur_vault_cents' => 0,
         ]);
 
         $response = $this->actingAs($user)->postJson('/vault/deposit', [
@@ -30,15 +30,15 @@ class VaultTest extends TestCase
         ]);
 
         $user->refresh();
-        $this->assertEquals(6000000.00, $user->game_balance);
-        $this->assertEquals(4000000.00, $user->vault_balance);
+        $this->assertEquals(600000000, $user->eur_balance_cents);
+        $this->assertEquals(400000000, $user->eur_vault_cents);
     }
 
     public function test_user_can_withdraw_from_vault_with_pin(): void
     {
         $user = User::factory()->create([
-            'game_balance' => 2000000.00,
-            'vault_balance' => 8000000.00,
+            'eur_balance_cents' => 200000000,
+            'eur_vault_cents' => 800000000,
             'vault_pin' => Hash::make('1234'),
         ]);
 
@@ -49,15 +49,15 @@ class VaultTest extends TestCase
 
         $response->assertOk();
         $user->refresh();
-        $this->assertEquals(7000000.00, $user->game_balance);
-        $this->assertEquals(3000000.00, $user->vault_balance);
+        $this->assertEquals(700000000, $user->eur_balance_cents);
+        $this->assertEquals(300000000, $user->eur_vault_cents);
     }
 
     public function test_withdrawal_fails_with_invalid_pin(): void
     {
         $user = User::factory()->create([
-            'game_balance' => 2000000.00,
-            'vault_balance' => 8000000.00,
+            'eur_balance_cents' => 200000000,
+            'eur_vault_cents' => 800000000,
             'vault_pin' => Hash::make('1234'),
         ]);
 

@@ -2,10 +2,13 @@
 
 namespace Tests\Feature;
 
+use Illuminate\Foundation\Testing\RefreshDatabase;
 use Tests\TestCase;
 
 class LegalPagesTest extends TestCase
 {
+    use RefreshDatabase;
+
     public function test_legal_and_info_pages_load_successfully(): void
     {
         $pages = [
@@ -13,6 +16,7 @@ class LegalPagesTest extends TestCase
             '/terms',
             '/privacy',
             '/sweeps-rules',
+            '/promotions',
             '/responsible-gaming',
             '/faq',
             '/help',
