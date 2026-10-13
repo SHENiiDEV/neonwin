@@ -2,6 +2,7 @@
 
 namespace Tests\Feature;
 
+use App\Models\AdminAudit;
 use App\Models\GameTransaction;
 use App\Models\LaunchSetting;
 use App\Models\User;
@@ -103,6 +104,62 @@ class LaunchRewardsTest extends TestCase
         $this->assertDatabaseCount('wallet_entries', 1);
     }
 
+    public function test_admin_can_adjust_own_eur_wallet_then_fund_the_wheel_without_duplicate_credits(): void
+    {
+        $admin = $this->admin(0);
+        $other = User::factory()->create(['eur_balance_cents' => 1000]);
+        $credit = ['direction' => 'credit', 'amount' => '50.00', 'reason' => 'Approved launch wheel allocation', 'request_id' => (string) Str::uuid(), 'confirmed' => true, 'user_id' => $other->id];
+
+        $this->actingAs($admin)->post('/admin/launch/wallet', $credit)->assertSessionHasNoErrors();
+        $this->post('/admin/launch/wallet', $credit)->assertSessionHasNoErrors();
+        $this->assertSame(5000, $admin->fresh()->eur_balance_cents);
+        $this->assertSame(1000, $other->fresh()->eur_balance_cents);
+        $this->assertDatabaseHas('wallet_entries', ['user_id' => $admin->id, 'kind' => 'admin_credit', 'delta_cents' => 5000, 'balance_after_cents' => 5000]);
+        $this->assertDatabaseHas('admin_audits', ['actor_id' => $admin->id, 'action' => 'admin_wallet_adjusted']);
+        $this->assertSame($credit['reason'], AdminAudit::where('action', 'admin_wallet_adjusted')->firstOrFail()->after['reason']);
+        $this->postJson('/admin/launch/wallet', array_replace($credit, ['amount' => '60.00']))->assertUnprocessable();
+        $this->postJson('/admin/launch/wallet', array_replace($credit, ['reason' => 'Different adjustment reason']))->assertUnprocessable();
+
+        $this->post('/admin/launch/fund', ['amount' => '25.00', 'request_id' => (string) Str::uuid()])->assertSessionHasNoErrors();
+        $debit = ['direction' => 'debit', 'amount' => '10.00', 'reason' => 'Reversing unused launch allocation', 'request_id' => (string) Str::uuid(), 'confirmed' => true];
+        $this->post('/admin/launch/wallet', $debit)->assertSessionHasNoErrors();
+        $this->post('/admin/launch/wallet', $debit)->assertSessionHasNoErrors();
+
+        $this->assertSame(1500, $admin->fresh()->eur_balance_cents);
+        $this->assertSame(2500, LaunchSetting::findOrFail(1)->wheel_budget_cents);
+        $this->assertDatabaseHas('wallet_entries', ['user_id' => $admin->id, 'kind' => 'admin_debit', 'delta_cents' => -1000, 'balance_after_cents' => 1500]);
+        $this->assertDatabaseCount('wallet_entries', 3);
+        $this->get('/admin/launch')->assertInertia(fn ($page) => $page->has('walletAdjustments', 2));
+    }
+
+    public function test_admin_wallet_adjustment_rejects_unconfirmed_invalid_and_overdraft_requests(): void
+    {
+        $admin = $this->admin(500);
+        $request = ['direction' => 'debit', 'amount' => '6.00', 'reason' => 'Correcting an account balance', 'request_id' => (string) Str::uuid(), 'confirmed' => true];
+        $this->actingAs($admin)->postJson('/admin/launch/wallet', $request)->assertUnprocessable()->assertJsonValidationErrors('amount');
+        $this->postJson('/admin/launch/wallet', array_replace($request, ['amount' => '0']))->assertUnprocessable()->assertJsonValidationErrors('amount');
+        $this->postJson('/admin/launch/wallet', array_replace($request, ['amount' => '1.00', 'confirmed' => false]))->assertUnprocessable()->assertJsonValidationErrors('confirmed');
+        $this->postJson('/admin/launch/wallet', array_replace($request, ['amount' => '1.00', 'reason' => 'short']))->assertUnprocessable()->assertJsonValidationErrors('reason');
+        $this->assertSame(500, $admin->fresh()->eur_balance_cents);
+        $this->assertDatabaseCount('wallet_entries', 0);
+    }
+
+    public function test_failed_admin_wallet_audit_rolls_back_the_balance_and_ledger(): void
+    {
+        $admin = $this->admin(0);
+        AdminAudit::creating(function (): void {
+            throw new \RuntimeException('Test audit failure');
+        });
+        Exceptions::fake();
+        try {
+            $this->actingAs($admin)->postJson('/admin/launch/wallet', ['direction' => 'credit', 'amount' => '10.00', 'reason' => 'Approved test allocation', 'request_id' => (string) Str::uuid(), 'confirmed' => true])->assertInternalServerError();
+            $this->assertSame(0, $admin->fresh()->eur_balance_cents);
+            $this->assertDatabaseCount('wallet_entries', 0);
+        } finally {
+            AdminAudit::flushEventListeners();
+        }
+    }
+
     public function test_failed_fund_ledger_insert_rolls_back_every_wallet_change(): void
     {
         $this->funded();
@@ -127,7 +184,7 @@ class LaunchRewardsTest extends TestCase
         $this->post('/wheel/spin')->assertRedirect();
         $this->actingAs(User::factory()->create());
         $this->get('/admin/launch')->assertForbidden();
-        foreach (['fund', 'wheel', 'rakeback', 'telegram'] as $action) {
+        foreach (['fund', 'wallet', 'wheel', 'rakeback', 'telegram'] as $action) {
             $this->post('/admin/launch/'.$action)->assertForbidden();
         }
         $this->assertDatabaseCount('wheel_spins', 0);

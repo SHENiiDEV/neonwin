@@ -112,6 +112,7 @@ Route::middleware('auth')->group(function () {
         Route::get('/launch', [LaunchAdminController::class, 'index'])->name('launch.index');
         Route::post('/launch/wheel', [LaunchAdminController::class, 'wheel'])->name('launch.wheel');
         Route::post('/launch/fund', [LaunchAdminController::class, 'fund'])->middleware('throttle:10,1')->name('launch.fund');
+        Route::post('/launch/wallet', [LaunchAdminController::class, 'wallet'])->middleware('throttle:10,1')->name('launch.wallet');
         Route::post('/launch/rakeback', [LaunchAdminController::class, 'rakeback'])->name('launch.rakeback');
         Route::post('/launch/telegram', [LaunchAdminController::class, 'telegram'])->name('launch.telegram');
         Route::post('/launch/notices/{notice}/retry', [LaunchAdminController::class, 'retry'])->middleware('throttle:10,1')->name('launch.retry');

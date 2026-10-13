@@ -6,6 +6,8 @@ use App\Jobs\SendRegistrationNotice;
 use App\Models\AdminAudit;
 use App\Models\LaunchSetting;
 use App\Models\RegistrationNotice;
+use App\Models\User;
+use App\Models\WalletEntry;
 use App\Models\WheelFundEntry;
 use App\Services\EuroMoney;
 use App\Services\WheelService;
@@ -20,7 +22,7 @@ use Inertia\Response;
 
 class LaunchAdminController extends Controller
 {
-    public function index(): Response
+    public function index(Request $request): Response
     {
         $settings = LaunchSetting::findOrFail(1);
 
@@ -28,6 +30,7 @@ class LaunchAdminController extends Controller
             'settings' => $settings,
             'telegram' => ['configured' => (bool) $settings->telegram_token, 'group_id' => $settings->telegram_group_id],
             'fundEntries' => WheelFundEntry::latest('id')->limit(20)->get(),
+            'walletAdjustments' => WalletEntry::where('user_id', $request->user()->id)->whereIn('kind', ['admin_credit', 'admin_debit'])->latest('id')->limit(10)->get(),
             'notices' => RegistrationNotice::with('user:id,name,surname,email,contact_channel,contact_handle,contact_consent_at')->latest('id')->paginate(20)->through(fn ($notice) => [
                 'id' => $notice->id, 'user_id' => $notice->user_id, 'name' => $notice->user->name.' '.$notice->user->surname, 'email' => $notice->user->email,
                 'channel' => $notice->user->contact_channel, 'contact' => $notice->user->contact_handle, 'consent' => (bool) $notice->user->contact_consent_at,
@@ -56,6 +59,54 @@ class LaunchAdminController extends Controller
         $service->fund($request->user(), EuroMoney::cents($data['amount']), $data['request_id']);
 
         return back()->with('success', 'Your EUR wallet funded the daily wheel.');
+    }
+
+    public function wallet(Request $request): RedirectResponse
+    {
+        $data = $request->validate([
+            'direction' => ['required', Rule::in(['credit', 'debit'])],
+            'amount' => ['required', 'regex:/^[1-9][0-9]{0,5}(\.[0-9]{1,2})?$/D'],
+            'reason' => ['required', 'string', 'min:10', 'max:300'],
+            'request_id' => ['required', 'uuid'],
+            'confirmed' => ['accepted'],
+        ]);
+        $amount = EuroMoney::cents($data['amount']);
+        $delta = $data['direction'] === 'credit' ? $amount : -$amount;
+        $reason = trim($data['reason']);
+        if (mb_strlen($reason) < 10) {
+            throw ValidationException::withMessages(['reason' => 'Enter a meaningful reason of at least 10 characters.']);
+        }
+
+        DB::transaction(function () use ($request, $data, $delta, $reason): void {
+            $user = User::whereKey($request->user()->id)->lockForUpdate()->firstOrFail();
+            $reference = 'admin-wallet:'.$user->id.':'.$data['request_id'];
+            $existing = WalletEntry::where('reference', $reference)->first();
+            if ($existing) {
+                $audit = AdminAudit::where('action', 'admin_wallet_adjusted')->where('target', $reference)->first();
+                if ($existing->user_id !== $user->id || $existing->delta_cents !== $delta || ($audit?->after['reason'] ?? null) !== $reason) {
+                    throw ValidationException::withMessages(['amount' => 'This request was already used for a different adjustment.']);
+                }
+
+                return;
+            }
+            $before = $user->eur_balance_cents;
+            if ($before + $delta < 0) {
+                throw ValidationException::withMessages(['amount' => 'The debit exceeds your available EUR balance.']);
+            }
+            $user->eur_balance_cents = $before + $delta;
+            $user->save();
+            WalletEntry::create([
+                'user_id' => $user->id, 'reference' => $reference, 'kind' => $delta > 0 ? 'admin_credit' : 'admin_debit',
+                'delta_cents' => $delta, 'balance_before_cents' => $before, 'balance_after_cents' => $user->eur_balance_cents,
+            ]);
+            AdminAudit::create([
+                'actor_id' => $user->id, 'action' => 'admin_wallet_adjusted', 'target' => $reference,
+                'before' => ['balance_cents' => $before],
+                'after' => ['balance_cents' => $user->eur_balance_cents, 'delta_cents' => $delta, 'reason' => $reason],
+            ]);
+        }, 3);
+
+        return back()->with('success', 'Your EUR wallet adjustment was recorded.');
     }
 
     public function rakeback(Request $request): RedirectResponse
