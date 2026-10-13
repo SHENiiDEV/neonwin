@@ -103,7 +103,13 @@ export default function Header({
     setSearchQuery, 
     onSearchSubmit 
 }) {
-    const { auth } = usePage().props;
+    const page = usePage();
+    const { auth, filters } = page.props;
+    const pathname = page.url.split('?')[0];
+    const category = filters?.category || 'all';
+    const isCasino = pathname === '/' && category !== 'live';
+    const isLiveCasino = pathname === '/' && category === 'live';
+    const isSportsbook = pathname === '/sportsbook';
     const user = auth?.user;
 
     const [profileOpen, setProfileOpen] = useState(false);
@@ -211,8 +217,9 @@ export default function Header({
 
                 {/* Desktop Nav Links */}
                 <nav className="nw-header-nav" aria-label="Explore">
-                    <Link href="/" className="is-active">Casino</Link>
-                    <Link href="/?category=live">Live casino</Link><Link href="/sportsbook">Sportsbook</Link>
+                    <Link href="/" className={isCasino ? 'is-active' : ''} aria-current={isCasino ? 'page' : undefined}>Casino</Link>
+                    <Link href="/?category=live" className={isLiveCasino ? 'is-active' : ''} aria-current={isLiveCasino ? 'page' : undefined}>Live casino</Link>
+                    <Link href="/sportsbook" className={isSportsbook ? 'is-active' : ''} aria-current={isSportsbook ? 'page' : undefined}>Sportsbook</Link>
                     <button onClick={onOpenVip} className="flex items-center gap-1.5 text-yellow-400 hover:text-yellow-300">
                         <Crown size={14} /> VIP club
                     </button>
@@ -405,4 +412,3 @@ export default function Header({
         </header>
     );
 }
-

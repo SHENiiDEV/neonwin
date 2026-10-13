@@ -9,7 +9,9 @@ import CratesModal from '../Components/Modals/CratesModal';
 import TipModal from '../Components/Modals/TipModal';
 
 export default function MainLayout({ children, highlights = [] }) {
-    const { flash, auth, filters } = usePage().props;
+    const page = usePage();
+    const { flash, auth, filters } = page.props;
+    const isSportsbook = page.url.split('?')[0] === '/sportsbook';
 
     const [sidebarOpen, setSidebarOpen] = useState(false);
     const [authModalOpen, setAuthModalOpen] = useState(false);
@@ -133,12 +135,12 @@ export default function MainLayout({ children, highlights = [] }) {
                 />
 
                 {/* Main Page Content */}
-                <main id="main-content" className="nw-main">
+                <main id="main-content" className={`nw-main${isSportsbook ? ' nw-main--sportsbook' : ''}`}>
                     {typeof children === 'function' ? children(actions) : children}
                 </main>
 
                 {/* Footer */}
-                <Footer />
+                {!isSportsbook && <Footer />}
             </div>
 
             {/* Modals */}

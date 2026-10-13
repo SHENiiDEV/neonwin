@@ -148,6 +148,11 @@ button:focus-visible, a:focus-visible, input:focus-visible, select:focus-visible
 .nw-profile-menu { position: absolute; right: 0; top: 35px; width: 170px; padding: 10px; border: 1px solid #3b3249; border-radius: 10px; background: #1c1729; }
 .nw-profile-menu button { display: flex; gap: 8px; padding: 8px; font-size: 12px; width: 100%; }
 .nw-main { width: 100%; max-width: 1536px; margin: 0 auto; padding: 25px 30px 0; display: flex; flex-direction: column; gap: 30px; flex: 1; min-width: 0; }
+.nw-main--sportsbook { max-width: none; padding: 0; gap: 0; }
+.nw-sportsbook-shell { position: relative; width: 100%; flex: 1; min-height: calc(100dvh - 73px); background: #0d0f16; }
+.nw-sportsbook-frame { display: block; width: 100%; height: calc(100dvh - 73px); border: 0; background: #0d0f16; }
+.nw-sportsbook-loading { position: absolute; inset: 0; display: grid; place-items: center; z-index: 1; background: #0d0f16; color: #c8b3f7; font-size: 14px; letter-spacing: .03em; }
+.nw-sportsbook-unavailable { width: 100%; max-width: 960px; margin: 0 auto; padding: 40px 24px; }
 .nw-welcome-row { display: flex; align-items: center; justify-content: space-between; margin-bottom: -12px; }
 .nw-welcome-row > span { display: flex; align-items: center; gap: 8px; font-size: 9px; letter-spacing: 1.6px; font-weight: 600; color: #ada3c1; }
 .nw-welcome-row svg { color: #a883f9; }
@@ -454,3 +459,6 @@ button:focus-visible, a:focus-visible, input:focus-visible, select:focus-visible
 @media(max-width:1100px){.nw-wheel-copy{padding-left:30px}.nw-wheel-stage{min-height:540px}.nw-wheel-art{padding:30px 20px}.nw-wheel-copy h1{font-size:44px}.nw-wheel-facts{gap:12px}}
 @media(max-width:700px){.nw-wheel-stage{grid-template-columns:1fr}.nw-wheel-copy{padding:30px 24px 8px;max-width:none}.nw-wheel-copy h1{font-size:44px;margin:20px 0}.nw-wheel-copy>p{max-width:none}.nw-wheel-action{max-width:none}.nw-wheel-art{padding:25px 24px 30px;grid-row:2}.nw-wheel-machine{max-width:350px}.nw-wheel-caption{display:none}.nw-wheel-copy .nw-wheel-fineprint{margin-top:0}.nw-wheel-orbit{width:430px;height:430px}.nw-wheel-orbit-two{width:510px;height:510px}}
 @media(prefers-reduced-motion:reduce){.nw-wheel-disc{transition:none}}
+
+@media (max-width: 1279px) { .nw-main.nw-main--sportsbook { padding: 0; } }
+@media (max-width: 767px) { .nw-sportsbook-shell { min-height: calc(100dvh - 64px); }.nw-sportsbook-frame { height: calc(100dvh - 64px); min-height: 0; } }
