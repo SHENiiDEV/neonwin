@@ -23,12 +23,12 @@ class FlexrixWallet
         if (! is_string($player) || strlen($player) > 255) {
             throw new InvalidArgumentException('Invalid player.');
         }
+        if (($body['currency'] ?? ($action === 'balance' ? 'EUR' : '')) !== 'EUR') {
+            return ['ok' => false, 'error_code' => 'CURRENCY_NOT_SUPPORTED'];
+        }
         $user = User::where('user_code', $player)->first();
         if (! $user) {
             return ['ok' => false, 'error_code' => 'UNKNOWN_PLAYER'];
-        }
-        if (($body['currency'] ?? ($action === 'balance' ? 'EUR' : '')) !== 'EUR') {
-            return ['ok' => false, 'error_code' => 'CURRENCY_NOT_SUPPORTED'];
         }
 
         return DB::transaction(function () use ($user, $channel, $body, $action): array {
@@ -164,7 +164,7 @@ class FlexrixWallet
                 app(LaunchRakebackService::class)->record($user, $transaction, max(0, $bet), $void ? 0 : $win);
             }
             GameSession::where('user_id', $user->id)->where('provider_code', $game?->provider_code ?? ($channel === 'casino' ? 'FLEXRIX_CASINO' : 'FLEXRIX_SPORTSBOOK'))->update(['last_activity_at' => now()]);
-            $response = ['ok' => true, 'balance' => $user->eur_balance_cents / 100];
+            $response = ['ok' => true, 'balance' => $user->eur_balance_cents / 100, 'currency' => 'EUR'];
             $this->receipt($scope, $id, $user, $action, $delta, $fingerprint, $response, $transaction->id);
 
             return $response;

@@ -118,6 +118,25 @@ class FlexrixIntegrationTest extends TestCase
         $this->assertDatabaseCount('wallet_entries', 0);
     }
 
+    public function test_unsupported_currency_is_reported_before_unknown_player(): void
+    {
+        $user = User::factory()->make(['user_code' => 'missing-player']);
+
+        $this->casino($user, 'balance', ['currency' => 'XYZ'])->assertOk()->assertJsonPath('error_code', 'CURRENCY_NOT_SUPPORTED');
+
+        $this->assertDatabaseCount('wallet_entries', 0);
+    }
+
+    public function test_successful_casino_transaction_returns_eur_currency(): void
+    {
+        $this->game();
+        $user = User::factory()->create(['eur_balance_cents' => 100000]);
+
+        $this->casino($user, 'bet', ['amount' => '10.00'])->assertOk()->assertJsonPath('balance', 990)->assertJsonPath('currency', 'EUR');
+
+        $this->assertSame(99000, $user->fresh()->eur_balance_cents);
+    }
+
     public function test_sports_raw_body_hmac_is_required_without_timestamp(): void
     {
         $user = User::factory()->create(['eur_balance_cents' => 10000]);

@@ -45,7 +45,7 @@ class FlexrixConcurrencyTest extends TestCase
                 $this->assertSame(0, pcntl_wexitstatus($status));
             }
             DB::purge('sqlite');
-            $this->assertSame(['ok' => true, 'balance' => 50], app(FlexrixWallet::class)->handle('sportsbook', $body, 'debit'));
+            $this->assertSame(['ok' => true, 'balance' => 50, 'currency' => 'EUR'], app(FlexrixWallet::class)->handle('sportsbook', $body, 'debit'));
             $this->assertSame(5000, $user->fresh()->eur_balance_cents);
             $this->assertDatabaseCount('wallet_entries', 1);
             $this->assertDatabaseCount('game_transactions', 1);
