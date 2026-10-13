@@ -1,47 +1,40 @@
 import React from 'react';
-import { ArrowUpRight, Sparkles } from 'lucide-react';
+import { ArrowUpRight } from 'lucide-react';
 import ProviderLogo from './ProviderLogo';
 
 export default function ProvidersBar({ providers = [], onSelectProvider }) {
-    const displayProviders = providers;
+    if (providers.length === 0) {
+        return null;
+    }
 
     return (
-        <section className="nw-providers pt-8 border-t border-[#291e36]" aria-label="Game providers">
-            <div className="flex items-center justify-between mb-5 flex-wrap gap-2">
-                <div className="flex items-center gap-2">
-                    <span className="w-2 h-2 rounded-full bg-purple-400 shadow-[0_0_8px_rgba(192,132,252,0.8)] animate-pulse" />
-                    <span className="text-[10px] font-black uppercase tracking-widest text-[#a899bc]">
-                        GREAT GAMES. GREAT CREATORS.
-                    </span>
+        <section className="nw-providers border-t border-[#291e36] pt-8" aria-labelledby="studio-heading">
+            <div className="mb-6 flex flex-wrap items-end justify-between gap-4">
+                <div>
+                    <p className="mb-2 text-[10px] font-bold uppercase tracking-[0.28em] text-[#b393d7]">The studios behind the action</p>
+                    <h2 id="studio-heading" className="text-2xl font-black tracking-tight text-white sm:text-3xl">GREAT GAMES. <span className="text-[#d7aaef]">GREAT CREATORS.</span></h2>
                 </div>
-                <span className="text-[11px] text-gray-400 font-mono">
-                    {displayProviders.length} available providers & studios
-                </span>
+                <p className="text-xs text-[#9d90ab]">{providers.length} studios · sorted by available games</p>
             </div>
 
-            <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-7 gap-3">
-                {displayProviders.map(provider => (
+            <div className="grid grid-cols-2 gap-3 sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5">
+                {providers.map((provider, index) => (
                     <button
                         key={provider.code}
-                        onClick={() => onSelectProvider && onSelectProvider(provider.code)}
-                        className="group relative px-4 py-3.5 rounded-2xl bg-[#130d1f]/90 hover:bg-[#201435] border border-[#2f2040] hover:border-purple-500/50 hover:shadow-[0_0_25px_rgba(168,85,247,0.25)] flex items-center justify-center transition-all duration-300 hover:-translate-y-0.5 text-gray-400 hover:text-white overflow-hidden"
-                        title={`Explore games by ${provider.name}`}
+                        type="button"
+                        onClick={() => onSelectProvider?.(provider.code)}
+                        className="group relative flex min-h-[104px] flex-col justify-between overflow-hidden rounded-2xl border border-[#382844] bg-gradient-to-br from-[#21152b] to-[#120e19] p-4 text-left transition duration-200 hover:-translate-y-0.5 hover:border-[#9b5acd] hover:shadow-[0_12px_35px_rgba(104,40,146,0.18)] focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-purple-400"
+                        aria-label={`Show ${provider.games_count} games by ${provider.name}`}
                     >
-                        {/* Subtle background glow effect on hover */}
-                        <div className="absolute inset-0 bg-gradient-to-r from-purple-500/0 via-purple-500/5 to-pink-500/0 opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none" />
-
-                        <div className="relative z-10 flex items-center justify-center w-full min-h-[32px]">
-                            <ProviderLogo 
-                                code={provider.code} 
-                                name={provider.name} 
-                                className="h-6 max-w-[130px] w-auto transition-transform duration-300 group-hover:scale-105 filter drop-shadow-sm" 
-                            />
+                        <div className="flex min-w-0 items-center gap-3 pr-4">
+                            <ProviderLogo provider={provider} />
+                            <span className="min-w-0 break-words text-sm font-bold leading-tight text-white">{provider.name}</span>
                         </div>
-
-                        <ArrowUpRight 
-                            size={12} 
-                            className="absolute top-2 right-2 text-gray-600 group-hover:text-purple-300 opacity-0 group-hover:opacity-100 transition-all duration-200" 
-                        />
+                        <div className="mt-4 flex items-center justify-between text-[11px] text-[#ad9db8]">
+                            <span><span className="font-semibold text-[#e8c9ff]">{Number(provider.games_count).toLocaleString()}</span> games</span>
+                            <span className="font-mono text-[#806e90]">#{String(index + 1).padStart(2, '0')}</span>
+                        </div>
+                        <ArrowUpRight size={15} className="absolute right-4 top-4 text-[#806e90] transition group-hover:text-[#d4a9fa]" aria-hidden="true" />
                     </button>
                 ))}
             </div>

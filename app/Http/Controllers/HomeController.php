@@ -19,13 +19,12 @@ class HomeController extends Controller
         $provider = $request->query('provider', 'all');
         $search = $request->query('search', '');
 
-        // Fetch providers that have games
         $providers = Provider::where('integration', config('gaming.provider'))->where('status', true)
-            ->whereHas('games', fn ($query) => $query->where('status', true))
-            ->withCount(['games' => fn ($query) => $query->where('status', true)])
-            ->get()
-            ->sortByDesc('games_count')
-            ->values();
+            ->whereHas('games', fn ($query) => $query->where('status', true)->where('integration', config('gaming.provider')))
+            ->withCount(['games' => fn ($query) => $query->where('status', true)->where('integration', config('gaming.provider'))])
+            ->orderByDesc('games_count')
+            ->orderBy('name')
+            ->get();
 
         $gamesQuery = Game::where('integration', config('gaming.provider'))->where('status', true)->whereHas('provider', fn ($query) => $query->where('status', true));
 

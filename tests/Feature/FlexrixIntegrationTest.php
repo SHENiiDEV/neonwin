@@ -279,6 +279,30 @@ class FlexrixIntegrationTest extends TestCase
         Http::assertSentCount(3);
     }
 
+    public function test_catalogue_uses_provider_labels_and_orders_studios_by_active_game_count(): void
+    {
+        Http::fake([
+            'api.upaflex.online/v1/native/providers' => Http::response(['items' => [
+                ['code' => 'Evolution', 'label' => 'Evolution', 'games' => 1],
+                ['code' => 'Pragmatic', 'label' => 'Pragmatic Play', 'games' => 2],
+            ]]),
+            'api.upaflex.online/v1/native/games*' => Http::response(['items' => [
+                ['uuid' => 'pragmatic-1', 'slug' => 'pragmatic-1', 'name' => 'Pragmatic One', 'provider' => 'Pragmatic Play', 'active' => true],
+                ['uuid' => 'evolution-1', 'slug' => 'evolution-1', 'name' => 'Evolution One', 'provider' => 'Evolution', 'active' => true],
+                ['uuid' => 'pragmatic-2', 'slug' => 'pragmatic-2', 'name' => 'Pragmatic Two', 'provider' => 'Pragmatic Play', 'active' => true],
+            ], '_meta' => ['pageCount' => 1, 'totalCount' => 3, 'currentPage' => 1]]),
+        ]);
+
+        $this->assertSame(0, app(FlexrixService::class)->sync()['errors']);
+        $this->assertDatabaseHas('providers', ['code' => FlexrixService::providerCode('Pragmatic Play'), 'external_code' => 'Pragmatic', 'name' => 'Pragmatic Play']);
+        $this->get('/')->assertOk()->assertInertia(fn ($page) => $page
+            ->has('providers', 2)
+            ->where('providers.0.name', 'Pragmatic Play')
+            ->where('providers.0.games_count', 2)
+            ->where('providers.1.name', 'Evolution')
+            ->where('providers.1.games_count', 1));
+    }
+
     public function test_admin_imports_the_complete_flexrix_catalogue_without_a_provider_code(): void
     {
         $admin = User::factory()->create();

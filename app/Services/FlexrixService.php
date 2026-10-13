@@ -122,12 +122,13 @@ class FlexrixService
             if (! is_array($providers) || ! array_is_list($providers)) {
                 throw new RuntimeException('Invalid provider catalogue.');
             }
-            $labels = [];
+            $providersByName = [];
             foreach ($providers as $provider) {
                 if (! is_string($provider['code'] ?? null) || ! is_string($provider['label'] ?? null)) {
                     throw new RuntimeException('Invalid provider.');
                 }
-                $labels[$provider['code']] = $provider['label'];
+                $providersByName[Str::lower(trim($provider['code']))] = $provider;
+                $providersByName[Str::lower(trim($provider['label']))] = $provider;
             }
             $items = [];
             $expectedTotal = null;
@@ -158,12 +159,23 @@ class FlexrixService
                 throw new RuntimeException('Catalogue count mismatch.');
             }
 
-            return DB::transaction(function () use ($items, $labels): array {
+            return DB::transaction(function () use ($items, $providersByName): array {
                 $codes = [];
+                $syncedProviders = [];
                 foreach ($items as $item) {
                     $code = self::providerCode($item['provider']);
                     $codes[] = $code;
-                    Provider::updateOrCreate(['code' => $code], ['integration' => 'flexrix', 'external_code' => $item['provider'], 'name' => $labels[$item['provider']] ?? $item['provider'], 'status' => true, 'synced_at' => now()]);
+                    if (! isset($syncedProviders[$code])) {
+                        $provider = $providersByName[Str::lower(trim($item['provider']))] ?? null;
+                        Provider::updateOrCreate(['code' => $code], [
+                            'integration' => 'flexrix',
+                            'external_code' => $provider['code'] ?? $item['provider'],
+                            'name' => $provider['label'] ?? $item['provider'],
+                            'status' => true,
+                            'synced_at' => now(),
+                        ]);
+                        $syncedProviders[$code] = true;
+                    }
                     Game::updateOrCreate(['provider_code' => $code, 'game_code' => $item['uuid']], [
                         'integration' => 'flexrix', 'external_code' => $item['slug'], 'name' => $item['name'], 'slug' => 'flexrix-'.Str::slug($item['slug']).'-'.substr(hash('sha256', $item['uuid']), 0, 8),
                         'banner_url' => self::httpsUrl($item['image_landscape'] ?? null) ? $item['image_landscape'] : (self::httpsUrl($item['image'] ?? null) ? $item['image'] : null),
