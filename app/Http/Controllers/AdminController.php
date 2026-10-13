@@ -69,7 +69,7 @@ class AdminController extends Controller
             }
         }
         $columns = match ($model) {
-            User::class => ['id', 'name', 'email', 'user_code', 'eur_balance_cents', 'eur_vault_cents', 'is_admin', 'created_at'],
+            User::class => ['id', 'name', 'email', 'user_code', 'eur_balance_cents', 'eur_vault_cents', 'account_emails_enabled', 'marketing_email_consent_at', 'is_admin', 'created_at'],
             GameSession::class => ['id', 'user_id', 'provider_code', 'game_code', 'status', 'last_activity_at', 'created_at'],
             GameTransaction::class => ['id', 'user_id', 'provider_code', 'game_code', 'game_type', 'remote_transaction_id', 'round_id', 'type', 'bet_amount', 'win_amount', 'balance_before', 'balance_after', 'currency', 'created_at'],
             default => ['*'],

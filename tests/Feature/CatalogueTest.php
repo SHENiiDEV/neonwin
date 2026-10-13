@@ -27,6 +27,25 @@ class CatalogueTest extends TestCase
             ->where('catalogue.page', 2)->has('providers', 1)->where('providers.0.games_count', 40));
     }
 
+    public function test_home_categories_reflect_available_games_only(): void
+    {
+        $provider = Provider::factory()->create();
+        Game::factory()->create(['provider_code' => $provider->code, 'category' => 'slots', 'is_popular' => true]);
+        Game::factory()->create(['provider_code' => $provider->code, 'category' => 'table']);
+        Game::factory()->create(['provider_code' => $provider->code, 'category' => 'live', 'status' => false]);
+        $disabled = Provider::factory()->create(['status' => false]);
+        Game::factory()->create(['provider_code' => $disabled->code, 'category' => 'crash']);
+
+        $this->get('/')->assertInertia(fn ($page) => $page
+            ->component('Home')
+            ->where('availableCategories', ['all', 'slots', 'table', 'popular']));
+
+        $this->get('/?category=fishing')->assertInertia(fn ($page) => $page
+            ->component('Home')
+            ->where('filters.category', 'all')
+            ->where('catalogue.total', 2));
+    }
+
     public function test_sync_retires_missing_games_without_deleting_history_or_using_invented_artwork(): void
     {
         config(['nexus.agent_code' => 'test', 'nexus.agent_token' => 'test', 'nexus.base_url' => 'https://api.nexusggr.eu']);

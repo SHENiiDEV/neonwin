@@ -19,11 +19,13 @@ const categoryNames = {
     live: 'Live casino',
     crash: 'Crash & fast games',
     fishing: 'Fish hunter',
-    popular: 'Popular games'
+    popular: 'Popular games',
+    table: 'Table games'
 };
 
 export default function Home({
     providers = [],
+    availableCategories = ['all'],
     popularGames = [],
     liveGames = [],
     crashGames = [],
@@ -79,7 +81,7 @@ export default function Home({
                         <span><Sparkles size={16} /> Your favorites, all in one place</span>
                     </div>
 
-                    <CategoryPills selectedCategory={category} onSelectCategory={selectCategory} />
+                    <CategoryPills selectedCategory={category} onSelectCategory={selectCategory} availableCategories={availableCategories} />
 
                     {isFiltered && (
                         <div className="nw-filter-summary">

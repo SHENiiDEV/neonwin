@@ -46,6 +46,8 @@ export default function AuthModal({ isOpen, onClose, initialMode = 'login' }) {
         contact_channel: '',
         contact_handle: '',
         contact_consent: false,
+        account_emails_enabled: true,
+        marketing_email_consent: false,
         date_of_birth: '',
         street: '',
         city: '',
@@ -434,6 +436,7 @@ export default function AuthModal({ isOpen, onClose, initialMode = 'login' }) {
 
                                 <fieldset className="rounded-2xl border border-purple-300/15 bg-[#14101e] p-4 flex flex-col gap-4">
                                     <legend className="px-2 text-sm text-purple-200">Stay in touch <span className="text-gray-500 text-xs">(optional)</span></legend>
+                                    <div className="space-y-3 border-b border-white/10 pb-4"><label className="flex items-start gap-3 text-xs leading-5 text-gray-300"><input type="checkbox" className="mt-1 accent-purple-500" checked={registerForm.data.account_emails_enabled} onChange={e => registerForm.setData('account_emails_enabled', e.target.checked)} />Send me account emails, including this welcome message and confirmed EUR deposit notices.</label><label className="flex items-start gap-3 text-xs leading-5 text-gray-300"><input type="checkbox" className="mt-1 accent-purple-500" checked={registerForm.data.marketing_email_consent} onChange={e => registerForm.setData('marketing_email_consent', e.target.checked)} />I would like optional Neonwin news and offers by email.</label></div>
                                     <label className="text-xs text-gray-300 flex flex-col gap-2">Preferred contact channel
                                         <select className="rounded-xl border border-[#3b2d49] bg-[#1c1626] p-3 text-white" value={registerForm.data.contact_channel} onChange={e => { registerForm.setData(data => ({ ...data, contact_channel: e.target.value, contact_handle: '', contact_consent: false })); }}>
                                             <option value="">No preferred messenger</option><option value="whatsapp">WhatsApp</option><option value="telegram">Telegram</option>
@@ -442,8 +445,8 @@ export default function AuthModal({ isOpen, onClose, initialMode = 'login' }) {
                                     {registerForm.data.contact_channel && <><label className="text-xs text-gray-300 flex flex-col gap-2">{registerForm.data.contact_channel === 'whatsapp' ? 'WhatsApp number · include country code' : 'Telegram username'}
                                         <input required type="text" maxLength="40" className="rounded-xl border border-[#3b2d49] bg-[#1c1626] p-3 text-white" placeholder={registerForm.data.contact_channel === 'whatsapp' ? '+35799123456' : '@your_username'} value={registerForm.data.contact_handle} onChange={e => registerForm.setData('contact_handle', e.target.value)} />
                                     </label><label className="flex items-start gap-3 text-xs text-gray-400 leading-6"><input type="checkbox" className="mt-1 accent-purple-500" checked={registerForm.data.contact_consent} onChange={e => registerForm.setData('contact_consent', e.target.checked)} />I agree to receive a welcome message and account follow-up through this messenger. This is optional.</label></>}
-                                    <p className="text-[11px] text-gray-500 leading-5">Your name, email and chosen contact may be sent to our restricted account-team Telegram group for registration follow-up. See our <Link href="/privacy" onClick={onClose} className="text-purple-300 underline">privacy policy</Link>. Contact support to change your contact preference or withdraw consent.</p>
-                                    {['contact_channel','contact_handle','contact_consent'].map(key => registerForm.errors[key] && <p key={key} role="alert" className="text-xs text-rose-400">{registerForm.errors[key]}</p>)}
+                                    <p className="text-[11px] text-gray-500 leading-5">Your name, email and chosen contact may be sent to our restricted account-team Telegram group for registration follow-up. See our <Link href="/privacy" onClick={onClose} className="text-purple-300 underline">privacy policy</Link>. After registering, change communication choices in Profile → Preferences; contact support to update your messenger details.</p>
+                                    {['contact_channel','contact_handle','contact_consent','account_emails_enabled','marketing_email_consent'].map(key => registerForm.errors[key] && <p key={key} role="alert" className="text-xs text-rose-400">{registerForm.errors[key]}</p>)}
                                 </fieldset>
 
                                 {/* Terms & Conditions Checkbox */}

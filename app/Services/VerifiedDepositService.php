@@ -2,11 +2,14 @@
 
 namespace App\Services;
 
+use App\Jobs\SendDepositConfirmation;
 use App\Models\Deposit;
 use App\Models\User;
 use App\Models\WalletEntry;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Log;
 use LogicException;
+use Throwable;
 
 /** Called only by a trusted server-side payment adapter after verifying the provider event. */
 class VerifiedDepositService
@@ -17,7 +20,7 @@ class VerifiedDepositService
             throw new LogicException('Invalid payment confirmation.');
         }
 
-        return DB::transaction(function () use ($reference, $provider, $eventId, $amountCents): Deposit {
+        [$deposit, $newlyConfirmed] = DB::transaction(function () use ($reference, $provider, $eventId, $amountCents): array {
             $deposit = Deposit::where('reference', $reference)->lockForUpdate()->firstOrFail();
             if ($deposit->amount_cents !== $amountCents || $deposit->payment_provider !== $provider) {
                 throw new LogicException('Payment does not match the deposit.');
@@ -27,7 +30,7 @@ class VerifiedDepositService
                     throw new LogicException('Payment confirmation conflict.');
                 }
 
-                return $deposit;
+                return [$deposit, null];
             }
             if ($deposit->status !== 'pending') {
                 throw new LogicException('This deposit is not awaiting payment.');
@@ -40,7 +43,17 @@ class VerifiedDepositService
             $deposit->update(['status' => 'confirmed', 'payment_event_id' => $eventId, 'confirmed_at' => now()]);
             app(PromotionService::class)->awardFirstDeposit($deposit, $user);
 
-            return $deposit;
+            return [$deposit, true];
         }, 3);
+
+        if ($newlyConfirmed) {
+            try {
+                SendDepositConfirmation::dispatch($deposit->id)->afterCommit();
+            } catch (Throwable $exception) {
+                Log::warning('Deposit confirmation email could not be queued.', ['deposit_id' => $deposit->id, 'exception' => $exception->getMessage()]);
+            }
+        }
+
+        return $deposit;
     }
 }

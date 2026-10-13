@@ -24,12 +24,12 @@ function WalletBalanceDisplay({ balance = 0 }) {
 }
 
 export default function Sidebar({ isOpen, setIsOpen, onOpenDeposit, onOpenVip, onOpenCrates, onOpenVault, onOpenTip }) {
-    const { auth, filters = {} } = usePage().props;
+    const { auth, filters = {}, availableCategories } = usePage().props;
     const category = filters.category || 'all';
     const pathname = usePage().url.split('?')[0];
     const links = [
         ['all', 'Casino lobby', LayoutGrid], ['slots', 'Slots', Cherry], ['live', 'Live casino', Radio],
-        ['crash', 'Crash & fast games', Rocket], ['fishing', 'Fish hunter', Fish], ['popular', 'Popular games', Flame],
+        ['table', 'Table games', LayoutGrid], ['crash', 'Crash & fast games', Rocket], ['fishing', 'Fish hunter', Fish], ['popular', 'Popular games', Flame],
     ];
     return (
         <aside className={`nw-sidebar ${isOpen ? 'is-open' : ''}`} aria-label="Main navigation">
@@ -48,7 +48,7 @@ export default function Sidebar({ isOpen, setIsOpen, onOpenDeposit, onOpenVip, o
 
             <nav className="nw-navigation">
                 <span className="nw-nav-label">LET’S PLAY</span>
-                {links.map(([id, label, Icon]) => <Link key={id} href={`/?category=${id}`} onClick={() => setIsOpen(false)} className={`nw-nav-link ${pathname === '/' && category === id ? 'is-active' : ''}`}><Icon size={18} /><span>{label}</span>{id === 'live' && <i className="nw-live-dot" />}{id === 'slots' && <span className="nw-nav-tag">HOT</span>}</Link>)}
+                {links.filter(([id]) => !availableCategories || availableCategories.includes(id)).map(([id, label, Icon]) => <Link key={id} href={`/?category=${id}`} onClick={() => setIsOpen(false)} className={`nw-nav-link ${pathname === '/' && category === id ? 'is-active' : ''}`}><Icon size={18} /><span>{label}</span>{id === 'live' && <i className="nw-live-dot" />}{id === 'slots' && <span className="nw-nav-tag">HOT</span>}</Link>)}
                 <Link href="/sportsbook" className={`nw-nav-link ${pathname === '/sportsbook' ? 'is-active' : ''}`} aria-current={pathname === '/sportsbook' ? 'page' : undefined} onClick={() => setIsOpen(false)}><Trophy size={18} /><span>Sportsbook</span></Link><span className="nw-nav-label nw-nav-divider">YOUR ACCOUNT</span>
                 {auth?.user && (
                     <>

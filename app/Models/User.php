@@ -20,7 +20,7 @@ class User extends Authenticatable
      */
     protected $fillable = [
         'name',
-        'surname', 'contact_channel', 'contact_handle', 'contact_consent_at',
+        'surname', 'contact_channel', 'contact_handle', 'contact_consent_at', 'account_emails_enabled', 'marketing_email_consent_at',
         'email',
         'phone',
         'date_of_birth',
@@ -64,6 +64,7 @@ class User extends Authenticatable
     {
         return [
             'contact_handle' => 'encrypted', 'contact_consent_at' => 'immutable_datetime',
+            'account_emails_enabled' => 'boolean', 'marketing_email_consent_at' => 'immutable_datetime',
             'email_verified_at' => 'datetime',
             'date_of_birth' => 'date',
             'terms_accepted' => 'boolean',

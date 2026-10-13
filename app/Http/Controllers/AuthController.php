@@ -75,6 +75,8 @@ class AuthController extends Controller
             'contact_channel' => ['nullable', Rule::in(['whatsapp', 'telegram'])],
             'contact_handle' => ['nullable', 'required_with:contact_channel', Rule::prohibitedIf(! $request->filled('contact_channel')), 'string', 'max:40', $request->input('contact_channel') === 'whatsapp' ? 'regex:/^\+[1-9][0-9]{6,14}$/D' : 'regex:/^@?[A-Za-z][A-Za-z0-9_]{4,31}$/D'],
             'contact_consent' => ['sometimes', 'boolean'],
+            'account_emails_enabled' => ['sometimes', 'boolean'],
+            'marketing_email_consent' => ['sometimes', 'boolean'],
             'date_of_birth' => [
                 'required',
                 'date',
@@ -112,6 +114,8 @@ class AuthController extends Controller
                 'contact_channel' => $validated['contact_channel'] ?? null,
                 'contact_handle' => $validated['contact_handle'] ?? null,
                 'contact_consent_at' => ! empty($validated['contact_channel']) && ! empty($validated['contact_consent']) ? now() : null,
+                'account_emails_enabled' => $validated['account_emails_enabled'] ?? true,
+                'marketing_email_consent_at' => ! empty($validated['marketing_email_consent']) ? now() : null,
                 'date_of_birth' => $validated['date_of_birth'],
                 'street' => $validated['street'],
                 'city' => $validated['city'],
@@ -154,11 +158,12 @@ class AuthController extends Controller
             'status' => 'pending',
         ]);
 
-        // Send Welcome Email via PrivateEmail SMTP
-        try {
-            Mail::to($user->email)->send(new WelcomeMail($user));
-        } catch (\Throwable $e) {
-            Log::warning('Welcome email could not be sent: '.$e->getMessage());
+        if ($user->account_emails_enabled) {
+            try {
+                Mail::to($user->email)->send(new WelcomeMail($user));
+            } catch (\Throwable $e) {
+                Log::warning('Welcome email could not be sent: '.$e->getMessage());
+            }
         }
 
         Auth::login($user);

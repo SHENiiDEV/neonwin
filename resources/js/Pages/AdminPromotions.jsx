@@ -1,7 +1,7 @@
 import React from 'react';
 import { Head, Link, useForm, router } from '@inertiajs/react';
-import { Gift, ArrowLeft, Ticket } from 'lucide-react';
-import MainLayout from '../Layouts/MainLayout';
+import { Gift, Ticket } from 'lucide-react';
+import AdminLayout from '../Layouts/AdminLayout';
 
 const inputClass = 'w-full rounded-xl border border-white/10 bg-[#0d0f16] p-3 text-sm text-white focus:border-purple-400 focus:outline-none';
 const euro = cents => `€${(Number(cents || 0) / 100).toFixed(2)}`;
@@ -41,13 +41,12 @@ function PromotionForm({ promotion, games }) {
     </form>;
 }
 export default function AdminPromotions({ promotions, redemptions, games, rewardDeliveryEnabled }) {
-    return <MainLayout><Head title="Promotions administration" /><div className="py-6 flex flex-col gap-6 max-w-6xl mx-auto">
-        <Link href="/admin" className="text-sm text-gray-400 inline-flex items-center gap-2"><ArrowLeft size={15} />Back to operations</Link>
+    return <AdminLayout title="Promotions"><Head title="Promotions administration" /><div className="py-6 flex flex-col gap-6 max-w-6xl mx-auto">
         <header><span className="nw-eyebrow text-purple-300"><Ticket size={14} /> NEONWIN · PROMOTIONS</span><h1 className="text-3xl sm:text-4xl font-bold mt-3">A little more, on your terms.</h1><p className="text-sm text-gray-400 mt-3 max-w-2xl">Set the first deposit offer and create registration codes. Deposit bonuses apply once, after verified payment; the highest eligible bonus wins. New settings do not rewrite offers already reserved by a player.</p></header>
         <div className="rounded-xl border border-amber-300/20 bg-amber-300/5 p-4 text-xs text-amber-200">Payments are currently unavailable. These settings prepare future verified payments.{!rewardDeliveryEnabled && ' FreeSpins can be reserved; delivery is pending Nexus reward capability.'}</div>
         {promotions.filter(p => p.kind === 'first_deposit').map(p => <section key={p.id} className="rounded-2xl border border-purple-400/25 bg-[#181422] p-5 sm:p-7"><PromotionForm promotion={p} games={games} /></section>)}
         <section className="rounded-2xl border border-white/10 bg-[#14161f] p-5 sm:p-7"><PromotionForm games={games} /></section>
         <section className="flex flex-col gap-4"><h2 className="text-xl font-bold">Registration promo codes</h2>{promotions.filter(p => p.kind !== 'first_deposit').map(p => <details key={p.id} className="rounded-2xl border border-white/10 bg-[#14161f] p-5 sm:p-7"><summary className="cursor-pointer flex flex-wrap items-center gap-3"><Ticket size={18} className="text-purple-300" /><strong className="font-mono text-sm">{p.code}</strong><span className="text-sm text-gray-400">{p.name}</span><span className="text-xs ml-auto text-gray-500">{p.enabled ? 'Enabled' : 'Disabled'} · {p.redemptions_count} reserved</span></summary><div className="pt-6"><PromotionForm promotion={p} games={games} /></div></details>)}{promotions.length === 1 && <p className="text-sm text-gray-500">Create your first code above.</p>}</section>
         <section className="rounded-2xl border border-white/10 bg-[#14161f] p-5 sm:p-7"><h2 className="text-xl font-bold mb-5">Reservations & delivery</h2>{redemptions.data.length ? <div className="overflow-x-auto"><table className="w-full text-left text-xs min-w-[640px]"><thead className="text-gray-500"><tr>{['Player','Offer','State','Bonus','Delivery'].map(label=><th key={label} className="p-3">{label}</th>)}</tr></thead><tbody>{redemptions.data.map(r=><tr key={r.id} className="border-t border-white/5 align-top"><td className="p-3">{r.user?.email}<span className="block text-gray-500 mt-1">{r.user?.user_code}</span></td><td className="p-3">{r.snapshot.name}<span className="block font-mono text-purple-300 mt-1">{r.snapshot.code || 'Every player'}</span></td><td className="p-3">{r.status}</td><td className="p-3">{euro(r.bonus_cents)}</td><td className="p-3 max-w-sm"><p className="text-gray-400">{r.message || 'Reserved for the first verified deposit.'}</p>{r.snapshot.kind === 'free_spins' && <><span className="block text-gray-600 font-mono mt-2 break-all">{r.request_id}</span><button className="text-purple-300 mt-3" onClick={()=>router.post(`/admin/promotion-redemptions/${r.id}/issue`,{}, {preserveScroll:true})}>Check / deliver FreeSpins</button></>}</td></tr>)}</tbody></table></div> : <p className="text-sm text-gray-500">Reservations appear after a player registers with a code or receives a first deposit bonus.</p>}<div className="flex gap-4 mt-5 text-sm text-purple-300">{redemptions.prev_page_url && <Link href={redemptions.prev_page_url}>Previous</Link>}{redemptions.next_page_url && <Link href={redemptions.next_page_url}>Next</Link>}</div></section>
-    </div></MainLayout>;
+    </div></AdminLayout>;
 }

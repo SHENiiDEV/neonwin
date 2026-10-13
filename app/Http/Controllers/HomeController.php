@@ -26,6 +26,23 @@ class HomeController extends Controller
             ->orderBy('name')
             ->get();
 
+        $availableCategories = Game::where('integration', config('gaming.provider'))
+            ->where('status', true)
+            ->whereHas('provider', fn ($query) => $query->where('status', true))
+            ->select('category')->distinct()->orderBy('category')->pluck('category')->filter()->values()->all();
+        $hasPopularGames = Game::where('integration', config('gaming.provider'))
+            ->where('status', true)
+            ->where('is_popular', true)
+            ->whereHas('provider', fn ($query) => $query->where('status', true))
+            ->exists();
+        if ($hasPopularGames) {
+            $availableCategories[] = 'popular';
+        }
+        $availableCategories = array_values(array_unique(['all', ...$availableCategories]));
+        if (! in_array($category, $availableCategories, true)) {
+            $category = 'all';
+        }
+
         $gamesQuery = Game::where('integration', config('gaming.provider'))->where('status', true)->whereHas('provider', fn ($query) => $query->where('status', true));
 
         if ($category !== 'all' && ! empty($category)) {
@@ -67,6 +84,7 @@ class HomeController extends Controller
 
         return Inertia::render('Home', [
             'providers' => $providers,
+            'availableCategories' => $availableCategories,
             'popularGames' => $popularGames,
             'liveGames' => $liveGames,
             'crashGames' => $crashGames,

@@ -1,6 +1,25 @@
 import React, { useState } from 'react';
 
-// Flexrix's catalogue does not include logo URLs; use each studio's own website icon.
+// These brands also occur in the supplied provider list. Keep local copies for the catalogue.
+const localStudioLogos = {
+    '3oaks': '3oaks.png',
+    amatic: 'amatic.webp',
+    amigo: 'amigo.png',
+    bgaming: 'bgaming.png',
+    endorphina: 'endorphina.png',
+    hacksaw: 'hacksaw.png',
+    pgsoft: 'pgsoft.png',
+    platipus: 'platipus.png',
+    pragmaticplay: 'pragmaticplay.png',
+    pragmaticplaylive: 'pragmaticplaylive.png',
+    rubyplay: 'rubyplay.png',
+    smartsoft: 'smartsoft.png',
+    spinomenal: 'spinomenal.png',
+    spribe: 'spribe.svg',
+    yggdrasil: 'yggdrasil.png',
+};
+
+// Flexrix's catalogue does not include logo URLs for other studios.
 const studioDomains = {
     '3oaks': '3oaks.com',
     amatic: 'amatic.com',
@@ -48,14 +67,17 @@ function studioKey(value) {
 export default function ProviderLogo({ provider }) {
     const [failed, setFailed] = useState(false);
     const name = provider.name || provider.external_code || provider.code;
-    const domain = studioDomains[studioKey(name)] || studioDomains[studioKey(provider.external_code)];
-    const source = provider.logo_url || (domain ? `https://www.google.com/s2/favicons?domain=${domain}&sz=128` : null);
+    const key = studioKey(name);
+    const externalKey = studioKey(provider.external_code);
+    const localLogo = localStudioLogos[key] || localStudioLogos[externalKey];
+    const domain = studioDomains[key] || studioDomains[externalKey];
+    const source = localLogo ? `/images/providers/${localLogo}` : provider.logo_url || (domain ? `https://www.google.com/s2/favicons?domain=${domain}&sz=128` : null);
 
     if (!source || failed) {
         return <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl border border-white/10 bg-white/5 text-sm font-black text-purple-200" aria-hidden="true">{name.charAt(0).toUpperCase()}</span>;
     }
 
-    return <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl border border-white/10 bg-white/10 p-1.5">
-        <img src={source} alt="" loading="lazy" referrerPolicy="no-referrer" onError={() => setFailed(true)} className="max-h-full max-w-full object-contain" />
+    return <span className="flex h-12 w-14 shrink-0 items-center justify-center rounded-xl border border-white/10 bg-white/10 p-1.5 transition-colors group-hover:border-purple-300/40 group-hover:bg-white/15">
+        <img src={source} alt="" loading="lazy" referrerPolicy="no-referrer" onError={() => setFailed(true)} className={`max-h-full max-w-full object-contain transition-transform group-hover:scale-105 ${localLogo === 'spribe.svg' ? 'brightness-0 invert' : ''}`} />
     </span>;
 }

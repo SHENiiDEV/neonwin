@@ -129,7 +129,7 @@ class LaunchRewardsTest extends TestCase
         $this->assertSame(2500, LaunchSetting::findOrFail(1)->wheel_budget_cents);
         $this->assertDatabaseHas('wallet_entries', ['user_id' => $admin->id, 'kind' => 'admin_debit', 'delta_cents' => -1000, 'balance_after_cents' => 1500]);
         $this->assertDatabaseCount('wallet_entries', 3);
-        $this->get('/admin/launch')->assertInertia(fn ($page) => $page->has('walletAdjustments', 2));
+        $this->get('/admin/wallets?user_id='.$admin->id)->assertInertia(fn ($page) => $page->has('entries', 2));
     }
 
     public function test_admin_wallet_adjustment_rejects_unconfirmed_invalid_and_overdraft_requests(): void

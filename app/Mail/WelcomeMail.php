@@ -6,7 +6,6 @@ use App\Models\User;
 use Illuminate\Bus\Queueable;
 use Illuminate\Mail\Mailable;
 use Illuminate\Mail\Mailables\Address;
-use Illuminate\Mail\Mailables\Attachment;
 use Illuminate\Mail\Mailables\Content;
 use Illuminate\Mail\Mailables\Envelope;
 use Illuminate\Queue\SerializesModels;
@@ -27,7 +26,7 @@ class WelcomeMail extends Mailable
     {
         return new Envelope(
             from: new Address(config('mail.from.address', 'info@neonwin.co.uk'), config('mail.from.name', 'Neonwin Casino')),
-            subject: 'Welcome to Neonwin — Your Cyber Recruit Crate is Ready!',
+            subject: 'Welcome to Neonwin — your account is ready',
         );
     }
 
@@ -38,21 +37,11 @@ class WelcomeMail extends Mailable
     {
         return new Content(
             view: 'emails.welcome',
+            text: 'emails.welcome-text',
             with: [
                 'user' => $this->user,
                 'userCode' => $this->user->user_code,
-                'referralCode' => $this->user->referral_code,
             ],
         );
-    }
-
-    /**
-     * Get the attachments for the message.
-     *
-     * @return array<int, Attachment>
-     */
-    public function attachments(): array
-    {
-        return [];
     }
 }

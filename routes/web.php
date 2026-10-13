@@ -1,6 +1,8 @@
 <?php
 
 use App\Http\Controllers\AdminController;
+use App\Http\Controllers\AdminMailPreviewController;
+use App\Http\Controllers\AdminWalletController;
 use App\Http\Controllers\AuthController;
 use App\Http\Controllers\ChallengeController;
 use App\Http\Controllers\ChatController;
@@ -15,6 +17,7 @@ use App\Http\Controllers\LaunchAdminController;
 use App\Http\Controllers\LegalController;
 use App\Http\Controllers\NexusReconciliationController;
 use App\Http\Controllers\ProfileController;
+use App\Http\Controllers\ProfilePreferencesController;
 use App\Http\Controllers\PromotionController;
 use App\Http\Controllers\SyndicateController;
 use App\Http\Controllers\TippingController;
@@ -40,6 +43,7 @@ Route::get('/vip', [VipController::class, 'index'])->name('vip');
 Route::get('/profile', [ProfileController::class, 'index'])->name('profile');
 Route::post('/profile', [ProfileController::class, 'update'])->name('profile.update');
 Route::post('/profile/password', [ProfileController::class, 'updatePassword'])->name('profile.password');
+Route::put('/profile/preferences', [ProfilePreferencesController::class, 'update'])->middleware('auth')->name('profile.preferences');
 
 // Legal & Information Pages
 Route::get('/terms', [LegalController::class, 'terms'])->name('legal.terms');
@@ -109,6 +113,10 @@ Route::middleware('auth')->group(function () {
     Route::get('/verification/{submission}/{kind}', [KycController::class, 'download'])->name('verification.file');
     Route::post('/withdraw', [KycController::class, 'withdrawal'])->name('withdraw');
     Route::prefix('admin')->name('admin.')->middleware('can:admin')->group(function () {
+        Route::get('/emails', [AdminMailPreviewController::class, 'index'])->name('emails.index');
+        Route::get('/emails/preview/{type}', [AdminMailPreviewController::class, 'show'])->whereIn('type', ['welcome', 'deposit', 'newsletter'])->name('emails.preview');
+        Route::get('/wallets', [AdminWalletController::class, 'index'])->name('wallets.index');
+        Route::post('/wallets/adjust', [AdminWalletController::class, 'store'])->middleware('throttle:10,1')->name('wallets.adjust');
         Route::get('/launch', [LaunchAdminController::class, 'index'])->name('launch.index');
         Route::post('/launch/wheel', [LaunchAdminController::class, 'wheel'])->name('launch.wheel');
         Route::post('/launch/fund', [LaunchAdminController::class, 'fund'])->middleware('throttle:10,1')->name('launch.fund');
