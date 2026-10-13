@@ -230,6 +230,22 @@ class FlexrixIntegrationTest extends TestCase
         Http::assertSentCount(3);
     }
 
+    public function test_admin_imports_the_complete_flexrix_catalogue_without_a_provider_code(): void
+    {
+        $admin = User::factory()->create();
+        $admin->forceFill(['is_admin' => true])->save();
+        Http::fake([
+            'api.upaflex.online/v1/native/providers' => Http::response(['items' => [['code' => 'Pragmatic', 'label' => 'Pragmatic Play']]]),
+            'api.upaflex.online/v1/native/games*' => Http::response(['items' => [['uuid' => 'flexrix-admin-game', 'slug' => 'admin-game', 'name' => 'Admin game', 'provider' => 'Pragmatic', 'active' => true]], '_meta' => ['pageCount' => 1, 'totalCount' => 1, 'currentPage' => 1]]),
+        ]);
+
+        $this->actingAs($admin)->post('/admin/sync')->assertRedirect()->assertSessionHas('success', 'Provider catalog synchronized.');
+
+        $this->assertDatabaseHas('games', ['game_code' => 'flexrix-admin-game', 'integration' => 'flexrix', 'status' => true]);
+        $this->assertDatabaseHas('admin_audits', ['actor_id' => $admin->id, 'action' => 'catalog_sync', 'target' => 'flexrix']);
+        Http::assertSentCount(2);
+    }
+
     public function test_failed_catalogue_does_not_disable_previous_games(): void
     {
         $game = $this->game();

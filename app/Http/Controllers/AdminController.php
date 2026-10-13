@@ -123,9 +123,11 @@ class AdminController extends Controller
 
     public function sync(Request $request, GamingService $gaming): RedirectResponse
     {
-        $data = $request->validate(['provider_code' => ['required', 'string', 'max:100', 'regex:/^[A-Z0-9_]+$/']]);
-        $result = $gaming->sync($data['provider_code']);
-        AdminAudit::create(['actor_id' => $request->user()->id, 'action' => 'catalog_sync', 'target' => $data['provider_code'], 'after' => $result]);
+        $providerCode = config('gaming.provider') === 'flexrix'
+            ? 'flexrix'
+            : $request->validate(['provider_code' => ['required', 'string', 'max:100', 'regex:/^[A-Z0-9_]+$/']])['provider_code'];
+        $result = $gaming->sync($providerCode);
+        AdminAudit::create(['actor_id' => $request->user()->id, 'action' => 'catalog_sync', 'target' => $providerCode, 'after' => $result]);
 
         return back()->with($result['errors'] ? 'error' : 'success', $result['errors'] ? 'Catalog sync could not be fully confirmed. Existing records were retained.' : 'Provider catalog synchronized.');
     }
