@@ -63,11 +63,21 @@ class FlexrixWallet
                 }
                 $adjustment = str_starts_with((string) $value, '-') ? -EuroMoney::cents(substr((string) $value, 1)) : EuroMoney::cents($value);
             }
-            $fingerprint = hash('sha256', json_encode([$user->id, $action, $amount, $adjustment, $body['game_uuid'] ?? null, (string) ($body['round_id'] ?? $body['bet_id'] ?? ''), $reversals, $body['type'] ?? null, $body['freespin_id'] ?? null], JSON_THROW_ON_ERROR));
+            $fingerprint = $this->fingerprint($user, $action, $amount, $adjustment, $body, $reversals);
             $existing = DB::table('gaming_callbacks')->where('scope', $scope)->where('remote_id', $id)->first();
             if ($existing) {
-                if ($existing->user_id !== $user->id || ($existing->fingerprint !== null && ! hash_equals($existing->fingerprint, $fingerprint))) {
+                if ($existing->user_id !== $user->id) {
                     throw new InvalidArgumentException('Conflicting transaction identifier.');
+                }
+                if ($existing->fingerprint !== null && ! hash_equals($existing->fingerprint, $fingerprint)) {
+                    $original = $existing->game_transaction_id ? GameTransaction::find($existing->game_transaction_id) : null;
+                    $originalBody = $original?->raw_payload;
+                    $legacyFingerprint = is_array($originalBody)
+                        ? $this->fingerprint($user, $action, $amount, $adjustment, $body, $reversals, (string) ($originalBody['round_id'] ?? $originalBody['bet_id'] ?? ''))
+                        : null;
+                    if ($legacyFingerprint === null || ! hash_equals($existing->fingerprint, $legacyFingerprint)) {
+                        throw new InvalidArgumentException('Conflicting transaction identifier.');
+                    }
                 }
 
                 return json_decode($existing->response, true, flags: JSON_THROW_ON_ERROR);
@@ -188,6 +198,17 @@ class FlexrixWallet
         }
 
         return $value;
+    }
+
+    private function fingerprint(User $user, string $action, int $amount, int $adjustment, array $body, array $reversals, ?string $legacyRoundId = null): string
+    {
+        $fields = [$user->id, $action, $amount, $adjustment, $body['game_uuid'] ?? null];
+        if ($legacyRoundId !== null) {
+            $fields[] = $legacyRoundId;
+        }
+        array_push($fields, $reversals, $body['type'] ?? null, $body['freespin_id'] ?? null);
+
+        return hash('sha256', json_encode($fields, JSON_THROW_ON_ERROR));
     }
 
     private function receipt(string $scope, string $id, User $user, string $action, int $delta, ?string $fingerprint, array $response, ?int $transactionId = null): void

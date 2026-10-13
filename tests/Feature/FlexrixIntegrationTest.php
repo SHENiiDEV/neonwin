@@ -12,6 +12,7 @@ use App\Models\VipReward;
 use App\Models\WalletEntry;
 use App\Services\FlexrixService;
 use Illuminate\Foundation\Testing\RefreshDatabase;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Http;
 use Illuminate\Testing\TestResponse;
 use Tests\TestCase;
@@ -76,6 +77,35 @@ class FlexrixIntegrationTest extends TestCase
         $this->assertSame(11535, $user->fresh()->eur_balance_cents);
         $this->assertDatabaseCount('wallet_entries', 2);
         $this->assertDatabaseCount('vip_bets', 1);
+    }
+
+    public function test_casino_retries_with_a_changed_round_id_return_original_results_without_new_wallet_entries(): void
+    {
+        $this->game();
+        $user = User::factory()->create(['eur_balance_cents' => 100000]);
+
+        $this->casino($user, 'bet', ['amount' => '10.00', 'round_id' => 'first-bet-round'])->assertOk()->assertJsonPath('balance', 990);
+        $this->casino($user, 'bet', ['amount' => '10.00', 'round_id' => 'retry-bet-round'])->assertOk()->assertJsonPath('balance', 990);
+        $this->casino($user, 'win', ['amount' => '150.00', 'transaction_id' => 'win-1', 'round_id' => 'first-win-round'])->assertOk()->assertJsonPath('balance', 1140);
+        $this->casino($user, 'win', ['amount' => '150.00', 'transaction_id' => 'win-1', 'round_id' => 'retry-win-round'])->assertOk()->assertJsonPath('balance', 1140);
+
+        $this->assertSame(114000, $user->fresh()->eur_balance_cents);
+        $this->assertDatabaseCount('wallet_entries', 2);
+        $this->assertDatabaseCount('gaming_callbacks', 2);
+    }
+
+    public function test_existing_round_sensitive_receipts_remain_idempotent_after_updating(): void
+    {
+        $this->game();
+        $user = User::factory()->create(['eur_balance_cents' => 100000]);
+        $legacyFingerprint = hash('sha256', json_encode([$user->id, 'bet', 1000, 1000, 'flexrix/test-game', 'legacy-round', [], null, null], JSON_THROW_ON_ERROR));
+        $this->casino($user, 'bet', ['amount' => '10.00', 'round_id' => 'legacy-round'])->assertOk()->assertJsonPath('balance', 990);
+        DB::table('gaming_callbacks')->where('remote_id', 'bet-1')->update(['fingerprint' => $legacyFingerprint]);
+
+        $this->casino($user, 'bet', ['amount' => '10.00', 'round_id' => 'retry-round'])->assertOk()->assertJsonPath('balance', 990);
+
+        $this->assertSame(99000, $user->fresh()->eur_balance_cents);
+        $this->assertDatabaseCount('wallet_entries', 1);
     }
 
     public function test_refund_and_rollback_reverse_each_original_only_once_and_remove_vip_stake(): void
