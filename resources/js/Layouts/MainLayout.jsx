@@ -3,6 +3,7 @@ import { usePage, router } from '@inertiajs/react';
 import Sidebar from '../Components/Sidebar';
 import Header from '../Components/Header';
 import Footer from '../Components/Footer';
+import MobileBottomNav from '../Components/MobileBottomNav';
 import AuthModal from '../Components/Modals/AuthModal';
 import DepositModal from '../Components/Modals/DepositModal';
 import CratesModal from '../Components/Modals/CratesModal';
@@ -142,6 +143,10 @@ export default function MainLayout({ children, highlights = [] }) {
                 {/* Footer */}
                 {!isSportsbook && <Footer />}
             </div>
+
+            {!sidebarOpen && !authModalOpen && !depositModalOpen && !cratesModalOpen && !tipModalOpen && (
+                <MobileBottomNav onOpenAuth={openAuth} onOpenDeposit={openDeposit} />
+            )}
 
             {/* Modals */}
             {authModalOpen && <AuthModal

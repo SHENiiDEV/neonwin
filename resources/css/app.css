@@ -147,6 +147,14 @@ button:focus-visible, a:focus-visible, input:focus-visible, select:focus-visible
 .nw-profile { display: flex; align-items: center; gap: 7px; font-size: 11px; }
 .nw-profile-menu { position: absolute; right: 0; top: 35px; width: 170px; padding: 10px; border: 1px solid #3b3249; border-radius: 10px; background: #1c1729; }
 .nw-profile-menu button { display: flex; gap: 8px; padding: 8px; font-size: 12px; width: 100%; }
+.nw-mobile-bottom-nav { display: none; }
+.nw-mobile-nav-item { display: flex; min-width: 0; flex-direction: column; align-items: center; justify-content: center; gap: 3px; border-radius: 12px; color: #a7a0b6; font-size: 10px; font-weight: 650; line-height: 1.2; text-decoration: none; transition: color .2s ease, background .2s ease; }
+.nw-mobile-nav-icon { display: grid; width: 38px; height: 34px; place-items: center; border-radius: 12px; }
+.nw-mobile-nav-item.is-active { color: #e8dbff; }
+.nw-mobile-nav-item.is-active .nw-mobile-nav-icon { color: #bc99ff; background: #7946ed30; }
+.nw-mobile-nav-item.is-featured .nw-mobile-nav-icon { color: #f4cd82; background: #46331f; border: 1px solid #ab804455; }
+.nw-mobile-nav-item.is-featured.is-active { color: #f4cd82; }
+.nw-mobile-nav-item:hover { color: #fff; background: #ffffff0b; }
 .nw-main { width: 100%; max-width: 1536px; margin: 0 auto; padding: 25px 30px 0; display: flex; flex-direction: column; gap: 30px; flex: 1; min-width: 0; }
 .nw-main--sportsbook { max-width: none; padding: 0; gap: 0; }
 .nw-sportsbook-shell { position: relative; width: 100%; flex: 1; min-height: calc(100dvh - 73px); background: #0d0f16; }
@@ -154,7 +162,7 @@ button:focus-visible, a:focus-visible, input:focus-visible, select:focus-visible
 .nw-sportsbook-mobile-action { display: none; }
 .nw-sportsbook-loading { position: absolute; inset: 0; display: grid; place-items: center; z-index: 1; background: #0d0f16; color: #c8b3f7; font-size: 14px; letter-spacing: .03em; }
 .nw-sportsbook-unavailable { width: 100%; max-width: 960px; margin: 0 auto; padding: 40px 24px; }
-@media (max-width: 767px) { .nw-sportsbook-mobile-action { display: flex; align-items: center; justify-content: space-between; gap: 12px; min-height: 48px; padding: 0 16px; color: #e5d7ff; background: #211831; border-bottom: 1px solid #503d69; font-size: 12px; font-weight: 700; }.nw-sportsbook-shell, .nw-sportsbook-frame { min-height: calc(100dvh - 112px); }.nw-sportsbook-frame { height: calc(100dvh - 112px); }.nw-sportsbook-loading { top: 48px; } }
+@media (max-width: 767px) { .nw-sportsbook-mobile-action { display: flex; align-items: center; justify-content: space-between; gap: 12px; min-height: 48px; padding: 0 16px; color: #e5d7ff; background: #211831; border-bottom: 1px solid #503d69; font-size: 12px; font-weight: 700; }.nw-sportsbook-loading { top: 48px; } }
 .nw-welcome-row { display: flex; align-items: center; justify-content: space-between; margin-bottom: -12px; }
 .nw-welcome-row > span { display: flex; align-items: center; gap: 8px; font-size: 9px; letter-spacing: 1.6px; font-weight: 600; color: #ada3c1; }
 .nw-welcome-row svg { color: #a883f9; }
@@ -463,4 +471,9 @@ button:focus-visible, a:focus-visible, input:focus-visible, select:focus-visible
 @media(prefers-reduced-motion:reduce){.nw-wheel-disc{transition:none}}
 
 @media (max-width: 1279px) { .nw-main.nw-main--sportsbook { padding: 0; } }
-@media (max-width: 767px) { .nw-sportsbook-shell { min-height: calc(100dvh - 64px); }.nw-sportsbook-frame { height: calc(100dvh - 64px); min-height: 0; } }
+@media (max-width: 767px) {
+  .nw-main-shell { padding-bottom: calc(72px + env(safe-area-inset-bottom)); }
+  .nw-mobile-bottom-nav { position: fixed; inset: auto 0 0; z-index: 35; display: grid; grid-template-columns: repeat(5, minmax(0, 1fr)); height: calc(72px + env(safe-area-inset-bottom)); padding: 6px 8px calc(4px + env(safe-area-inset-bottom)); border-top: 1px solid #3b3049; background: #11121bf2; box-shadow: 0 -12px 36px #05040b99; backdrop-filter: blur(18px); -webkit-backdrop-filter: blur(18px); }
+  .nw-sportsbook-shell { min-height: calc(100dvh - 136px - env(safe-area-inset-bottom)); }
+  .nw-sportsbook-frame { height: calc(100dvh - 184px - env(safe-area-inset-bottom)); min-height: 0; }
+}
