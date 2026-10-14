@@ -184,6 +184,7 @@ class FlexrixService
                         },
                         'rtp' => isset($item['rtp']) && is_numeric($item['rtp']) && $item['rtp'] >= 0 && $item['rtp'] <= 100 ? $item['rtp'] : null,
                         'bet_levels' => $item['bet_options'] ?? [], 'has_freespins' => (bool) ($item['has_freespins'] ?? false), 'status' => (bool) ($item['active'] ?? true),
+                        'mobile_supported' => (bool) ($item['is_mobile'] ?? true),
                     ]);
                 }
                 Game::where('integration', 'flexrix')->whereNotIn('game_code', array_keys($items))->update(['status' => false]);

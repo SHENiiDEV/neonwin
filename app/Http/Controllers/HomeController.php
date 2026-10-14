@@ -7,6 +7,7 @@ use App\Models\Game;
 use App\Models\GameTransaction;
 use App\Models\Provider;
 use App\Models\Tournament;
+use App\Services\DeviceSupport;
 use Illuminate\Http\Request;
 use Inertia\Inertia;
 use Inertia\Response;
@@ -15,23 +16,26 @@ class HomeController extends Controller
 {
     public function index(Request $request): Response
     {
+        $mobile = DeviceSupport::isMobile($request);
         $category = $request->query('category', 'all');
         $provider = $request->query('provider', 'all');
         $search = $request->query('search', '');
 
         $providers = Provider::where('integration', config('gaming.provider'))->where('status', true)
-            ->whereHas('games', fn ($query) => $query->where('status', true)->where('integration', config('gaming.provider')))
-            ->withCount(['games' => fn ($query) => $query->where('status', true)->where('integration', config('gaming.provider'))])
+            ->whereHas('games', fn ($query) => $query->where('status', true)->where('integration', config('gaming.provider'))->when($mobile, fn ($query) => $query->where('mobile_supported', true)))
+            ->withCount(['games' => fn ($query) => $query->where('status', true)->where('integration', config('gaming.provider'))->when($mobile, fn ($query) => $query->where('mobile_supported', true))])
             ->orderByDesc('games_count')
             ->orderBy('name')
             ->get();
 
         $availableCategories = Game::where('integration', config('gaming.provider'))
             ->where('status', true)
+            ->when($mobile, fn ($query) => $query->where('mobile_supported', true))
             ->whereHas('provider', fn ($query) => $query->where('status', true))
             ->select('category')->distinct()->orderBy('category')->pluck('category')->filter()->values()->all();
         $hasPopularGames = Game::where('integration', config('gaming.provider'))
             ->where('status', true)
+            ->when($mobile, fn ($query) => $query->where('mobile_supported', true))
             ->where('is_popular', true)
             ->whereHas('provider', fn ($query) => $query->where('status', true))
             ->exists();
@@ -43,7 +47,8 @@ class HomeController extends Controller
             $category = 'all';
         }
 
-        $gamesQuery = Game::where('integration', config('gaming.provider'))->where('status', true)->whereHas('provider', fn ($query) => $query->where('status', true));
+        $gamesQuery = Game::where('integration', config('gaming.provider'))->where('status', true)->whereHas('provider', fn ($query) => $query->where('status', true))
+            ->when($mobile, fn ($query) => $query->where('mobile_supported', true));
 
         if ($category !== 'all' && ! empty($category)) {
             if ($category === 'popular') {
@@ -69,9 +74,9 @@ class HomeController extends Controller
             $popularGames = (clone $gamesQuery)->take(12)->get();
         }
 
-        $liveGames = Game::where('integration', config('gaming.provider'))->where('status', true)->whereHas('provider', fn ($query) => $query->where('status', true))->where('category', 'live')->take(8)->get();
-        $crashGames = Game::where('integration', config('gaming.provider'))->where('status', true)->whereHas('provider', fn ($query) => $query->where('status', true))->where('category', 'crash')->take(8)->get();
-        $fishingGames = Game::where('integration', config('gaming.provider'))->where('status', true)->whereHas('provider', fn ($query) => $query->where('status', true))->where('category', 'fishing')->take(8)->get();
+        $liveGames = Game::where('integration', config('gaming.provider'))->where('status', true)->whereHas('provider', fn ($query) => $query->where('status', true))->where('category', 'live')->when($mobile, fn ($query) => $query->where('mobile_supported', true))->take(8)->get();
+        $crashGames = Game::where('integration', config('gaming.provider'))->where('status', true)->whereHas('provider', fn ($query) => $query->where('status', true))->where('category', 'crash')->when($mobile, fn ($query) => $query->where('mobile_supported', true))->take(8)->get();
+        $fishingGames = Game::where('integration', config('gaming.provider'))->where('status', true)->whereHas('provider', fn ($query) => $query->where('status', true))->where('category', 'fishing')->when($mobile, fn ($query) => $query->where('mobile_supported', true))->take(8)->get();
         $allGames = $gamesQuery->orderBy('name')->orderBy('id')->paginate(36)->withQueryString()->appends(['browse' => 'all']);
 
         $tournaments = Tournament::where('status', 'active')->orderBy('ends_at', 'asc')->get();

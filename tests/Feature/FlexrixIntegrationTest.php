@@ -303,6 +303,31 @@ class FlexrixIntegrationTest extends TestCase
             ->where('providers.1.games_count', 1));
     }
 
+    public function test_mobile_catalogue_and_launch_exclude_games_marked_desktop_only_by_flexrix(): void
+    {
+        Http::fake([
+            'api.upaflex.online/v1/native/providers' => Http::response(['items' => [['code' => 'Pragmatic', 'label' => 'Pragmatic Play']]]),
+            'api.upaflex.online/v1/native/games*' => Http::response(['items' => [
+                ['uuid' => 'mobile-game', 'slug' => 'mobile-game', 'name' => 'Mobile game', 'provider' => 'Pragmatic', 'active' => true, 'is_mobile' => 1],
+                ['uuid' => 'desktop-game', 'slug' => 'desktop-game', 'name' => 'Desktop game', 'provider' => 'Pragmatic', 'active' => true, 'is_mobile' => 0],
+            ], '_meta' => ['pageCount' => 1, 'totalCount' => 2, 'currentPage' => 1]]),
+        ]);
+
+        $this->assertSame(0, app(FlexrixService::class)->sync()['errors']);
+        $this->assertDatabaseHas('games', ['game_code' => 'desktop-game', 'mobile_supported' => false]);
+        $this->get('/')->assertInertia(fn ($page) => $page->where('catalogue.total', 2));
+        $this->withHeader('User-Agent', 'Mozilla/5.0 (iPhone; CPU iPhone OS 17_0 like Mac OS X)')->get('/')->assertInertia(fn ($page) => $page
+            ->where('catalogue.total', 1)
+            ->where('allGames.0.game_code', 'mobile-game')
+            ->where('providers.0.games_count', 1));
+        $this->withHeader('User-Agent', 'Mozilla/5.0 (iPhone; CPU iPhone OS 17_0 like Mac OS X)')->get('/api/games/search?q=game')->assertJsonCount(1, 'games');
+
+        $user = User::factory()->create();
+        $desktopGame = Game::where('game_code', 'desktop-game')->firstOrFail();
+        $this->actingAs($user)->withHeader('User-Agent', 'Mozilla/5.0 (iPhone; CPU iPhone OS 17_0 like Mac OS X)')->get('/game/'.$desktopGame->slug)->assertForbidden();
+        Http::assertSentCount(2);
+    }
+
     public function test_admin_imports_the_complete_flexrix_catalogue_without_a_provider_code(): void
     {
         $admin = User::factory()->create();

@@ -25,6 +25,7 @@ export default function GamePlayer({ game, launchUrl, relatedGames = [], message
 
     const [isLoading, setIsLoading] = useState(true);
     const [isFullscreen, setIsFullscreen] = useState(false);
+    const [isExpanded, setIsExpanded] = useState(false);
     const [currentBalance, setCurrentBalance] = useState(user?.game_balance || 0);
     const [favorite, setFavorite] = useState(() => {
         try {
@@ -58,19 +59,34 @@ export default function GamePlayer({ game, launchUrl, relatedGames = [], message
         }, 3000);
 
         const handleFullscreenChange = () => {
-            setIsFullscreen(Boolean(document.fullscreenElement));
+            setIsFullscreen(Boolean(document.fullscreenElement || document.webkitFullscreenElement));
+        };
+
+        const handleEscape = event => {
+            if (event.key === 'Escape') {
+                setIsExpanded(false);
+            }
         };
 
         document.addEventListener('fullscreenchange', handleFullscreenChange);
         document.addEventListener('webkitfullscreenchange', handleFullscreenChange);
+        document.addEventListener('keydown', handleEscape);
 
         return () => {
             clearTimeout(timer);
             clearInterval(pollInterval);
             document.removeEventListener('fullscreenchange', handleFullscreenChange);
             document.removeEventListener('webkitfullscreenchange', handleFullscreenChange);
+            document.removeEventListener('keydown', handleEscape);
         };
     }, [user]);
+
+    useEffect(() => {
+        if (!isExpanded) return;
+        const previousOverflow = document.body.style.overflow;
+        document.body.style.overflow = 'hidden';
+        return () => { document.body.style.overflow = previousOverflow; };
+    }, [isExpanded]);
 
     const toggleFavorite = () => {
         setFavorite(!favorite);
@@ -85,21 +101,24 @@ export default function GamePlayer({ game, launchUrl, relatedGames = [], message
         }
     };
 
-    const toggleFullscreen = () => {
-        if (!document.fullscreenElement) {
-            if (playerContainerRef.current?.requestFullscreen) {
-                playerContainerRef.current.requestFullscreen().catch(err => {
-                    console.error('Fullscreen request failed:', err);
-                });
-            } else if (playerContainerRef.current?.webkitRequestFullscreen) {
-                playerContainerRef.current.webkitRequestFullscreen();
-            }
-        } else {
-            if (document.exitFullscreen) {
-                document.exitFullscreen();
-            } else if (document.webkitExitFullscreen) {
-                document.webkitExitFullscreen();
-            }
+    const toggleFullscreen = async () => {
+        if (isExpanded) {
+            setIsExpanded(false);
+            return;
+        }
+        if (document.fullscreenElement || document.webkitFullscreenElement) {
+            if (document.exitFullscreen) await document.exitFullscreen();
+            else document.webkitExitFullscreen?.();
+            return;
+        }
+
+        const player = playerContainerRef.current;
+        try {
+            if (player?.requestFullscreen) await player.requestFullscreen();
+            else if (player?.webkitRequestFullscreen) player.webkitRequestFullscreen();
+            else setIsExpanded(true);
+        } catch {
+            setIsExpanded(true);
         }
     };
 
@@ -117,12 +136,12 @@ export default function GamePlayer({ game, launchUrl, relatedGames = [], message
     return (
         <MainLayout>
             {({ openDeposit }) => (
-                <div className="w-full max-w-[1536px] mx-auto flex flex-col gap-6 py-2">
+                <div className="w-full max-w-[1536px] mx-auto flex flex-col gap-4 sm:gap-6 py-2">
                     <Head title={`${game.name} - Play on Neonwin`} />
 
                     {!launchUrl && <div role="alert" className="rounded-2xl border border-amber-300/20 bg-[#14161f] p-6"><h2 className="text-xl font-bold">Game unavailable</h2><p className="text-sm text-gray-400 mt-2">{message || 'Launch could not be confirmed. Please try again later.'}</p></div>}
                     {/* Top Breadcrumb & Quick Controls */}
-                    <div className="flex flex-wrap items-center justify-between gap-4">
+                    <div className="flex flex-wrap items-center justify-between gap-3 sm:gap-4">
 
                         {/* Breadcrumbs & Title */}
                         <div className="flex items-center gap-2 text-xs text-gray-400">
@@ -147,7 +166,7 @@ export default function GamePlayer({ game, launchUrl, relatedGames = [], message
                         </div>
 
                         {/* Top Action Toolbar */}
-                        <div className="flex items-center gap-2.5">
+                        <div className="flex w-full sm:w-auto items-center justify-between sm:justify-start gap-2.5">
                             {/* Live Balance */}
                             <div className="px-3.5 py-1.5 rounded-xl bg-gradient-to-r from-[#1b172a] to-[#131524] border border-yellow-500/30 flex items-center gap-2.5 shadow-[0_0_15px_rgba(234,179,8,0.15)]">
                                 <div className="w-6 h-6 rounded-lg bg-yellow-500/20 border border-yellow-400/40 flex items-center justify-center flex-shrink-0">
@@ -192,9 +211,10 @@ export default function GamePlayer({ game, launchUrl, relatedGames = [], message
                             <button
                                 onClick={toggleFullscreen}
                                 className="px-3 py-2 rounded-xl bg-gradient-to-r from-purple-600 to-indigo-600 hover:from-purple-500 hover:to-indigo-500 text-white text-xs font-bold transition flex items-center gap-1.5 shadow-[0_0_20px_rgba(147,51,234,0.3)]"
-                                title="Toggle Fullscreen"
+                                title="Expand game"
+                                aria-label={isFullscreen || isExpanded ? 'Exit expanded game' : 'Expand game'}
                             >
-                                {isFullscreen ? (
+                                {isFullscreen || isExpanded ? (
                                     <>
                                         <Minimize className="w-4 h-4" />
                                         <span className="hidden sm:inline">Exit Fullscreen</span>
@@ -212,20 +232,20 @@ export default function GamePlayer({ game, launchUrl, relatedGames = [], message
                     {/* Game Stage Container */}
                     {launchUrl && <div
                         ref={playerContainerRef}
-                        className={`w-full bg-[#080a10] relative rounded-2xl overflow-hidden border border-[#2c2844] shadow-[0_12px_45px_rgba(0,0,0,0.85)] flex flex-col items-center justify-center transition-all duration-300 ${
-                            isFullscreen
-                                ? 'fixed inset-0 z-50 rounded-none border-0 h-screen max-h-none'
-                                : 'h-[520px] sm:h-[620px] lg:h-[72vh] max-h-[820px] min-h-[440px]'
+                        className={`bg-[#080a10] relative overflow-hidden border border-[#2c2844] shadow-[0_12px_45px_rgba(0,0,0,0.85)] flex flex-col items-center justify-center transition-all duration-300 ${
+                            isFullscreen || isExpanded
+                                ? 'fixed inset-0 z-[60] w-screen rounded-none border-0 h-[100dvh] max-h-none'
+                                : 'w-[calc(100%+2rem)] -mx-4 rounded-none h-[max(360px,calc(100dvh-180px))] sm:mx-0 sm:w-full sm:rounded-2xl sm:h-[620px] lg:h-[72vh] max-h-[820px]'
                         }`}
                     >
                         {/* Fullscreen Floating Exit Button */}
-                        {isFullscreen && (
+                        {(isFullscreen || isExpanded) && (
                             <button
                                 onClick={toggleFullscreen}
                                 className="absolute top-4 right-4 z-50 px-3 py-1.5 rounded-xl bg-black/70 hover:bg-black/90 backdrop-blur-md border border-white/20 text-white text-xs font-bold flex items-center gap-2 transition"
                             >
                                 <Minimize className="w-4 h-4" />
-                                <span>Exit Fullscreen (ESC)</span>
+                                <span>Close expanded view</span>
                             </button>
                         )}
 

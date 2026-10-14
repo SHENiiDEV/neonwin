@@ -268,7 +268,7 @@ export default function Header({
 
                     {/* Live Results Dropdown */}
                     {isDropdownOpen && (
-                        <div className="absolute top-full left-0 mt-2 w-[340px] sm:w-[420px] max-w-[92vw] bg-[#14101e] border border-[#3e2c50] rounded-2xl shadow-[0_20px_60px_rgba(0,0,0,0.9)] overflow-hidden backdrop-blur-xl z-50 animate-in fade-in slide-in-from-top-2 duration-150">
+                        <div className="nw-search-results absolute top-full left-0 mt-2 w-[340px] sm:w-[420px] max-w-[92vw] bg-[#14101e] border border-[#3e2c50] rounded-2xl shadow-[0_20px_60px_rgba(0,0,0,0.9)] overflow-hidden backdrop-blur-xl z-50 animate-in fade-in slide-in-from-top-2 duration-150">
                             <div className="px-4 py-2.5 bg-[#1a1427] border-b border-[#2e213d] flex items-center justify-between text-[11px]">
                                 <span className="text-gray-400 font-medium">
                                     {searchResults.length > 0 ? (

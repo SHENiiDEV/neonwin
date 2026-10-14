@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use App\Models\Game;
 use App\Models\Provider;
 use App\Models\User;
+use App\Services\DeviceSupport;
 use App\Services\FlexrixService;
 use App\Services\GamingService;
 use App\Services\NexusGgrService;
@@ -33,12 +34,14 @@ class GameController extends Controller
         }
 
         abort_unless($game->status && $game->provider?->status, 503, 'This game is under maintenance.');
+        abort_unless(! DeviceSupport::isMobile($request) || $game->mobile_supported, 403, 'This game is available on desktop only.');
 
         $launchResult = $this->gaming->launch($user, $game, (string) $request->query('lang', 'en'));
 
         $relatedGames = Game::where('provider_code', $game->provider_code)
             ->where('id', '!=', $game->id)
             ->where('status', true)
+            ->when(DeviceSupport::isMobile($request), fn ($query) => $query->where('mobile_supported', true))
             ->inRandomOrder()
             ->limit(6)
             ->get();
@@ -48,6 +51,7 @@ class GameController extends Controller
                 ->where('id', '!=', $game->id)
                 ->whereNotIn('id', $relatedGames->pluck('id'))
                 ->where('status', true)
+                ->when(DeviceSupport::isMobile($request), fn ($query) => $query->where('mobile_supported', true))
                 ->inRandomOrder()
                 ->limit(6 - $relatedGames->count())
                 ->get();
@@ -89,6 +93,7 @@ class GameController extends Controller
         $safeQuery = addcslashes($query, '%_');
 
         $games = Game::where('integration', config('gaming.provider'))->where('status', true)->whereHas('provider', fn ($query) => $query->where('status', true))
+            ->when(DeviceSupport::isMobile($request), fn ($query) => $query->where('mobile_supported', true))
             ->where(function ($q) use ($safeQuery) {
                 $q->where('name', 'like', "%{$safeQuery}%")
                     ->orWhere('slug', 'like', "%{$safeQuery}%")

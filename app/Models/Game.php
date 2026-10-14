@@ -22,6 +22,7 @@ class Game extends Model
         'is_popular',
         'is_featured',
         'status', 'bet_levels',
+        'mobile_supported',
     ];
 
     protected $casts = [
@@ -30,6 +31,7 @@ class Game extends Model
         'is_popular' => 'boolean',
         'is_featured' => 'boolean',
         'status' => 'boolean',
+        'mobile_supported' => 'boolean',
         'bet_levels' => 'array',
     ];
 
