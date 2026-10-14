@@ -70,10 +70,10 @@ class HandleInertiaRequests extends Middleware
                 ] : null,
             ],
             'company' => [
-                'name' => config('company.name', 'Neonwin Interactive Ltd.'),
-                'number' => config('company.number', 'HE 448921'),
-                'address' => config('company.address', 'Agiou Pavlou 15, Ledra Business Center, Block B, Office 302, 1105 Nicosia, Cyprus'),
-                'email' => config('company.email', 'support@neonwin.com'),
+                'name' => config('company.name'),
+                'number' => config('company.number'),
+                'address' => config('company.address'),
+                'email' => config('company.email'),
             ],
             'flash' => [
                 'message' => fn () => $request->session()->get('message'),
