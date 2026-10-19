@@ -477,3 +477,13 @@ button:focus-visible, a:focus-visible, input:focus-visible, select:focus-visible
   .nw-sportsbook-shell { min-height: calc(100dvh - 136px - env(safe-area-inset-bottom)); }
   .nw-sportsbook-frame { height: calc(100dvh - 184px - env(safe-area-inset-bottom)); min-height: 0; }
 }
+
+.nw-footer-socials { margin-top: 24px; }
+.nw-footer-socials > span { display: block; margin-bottom: 10px; color: #a891bd; font-size: 8px; font-weight: 700; letter-spacing: 1.6px; }
+.nw-footer-social-links { display: flex; flex-wrap: wrap; gap: 8px; }
+.nw-footer-social-links a { display: inline-flex; align-items: center; gap: 8px; min-height: 38px; padding: 0 12px; border: 1px solid #453450; border-radius: 9px; background: #1a1421; color: #d7c5e7; font-size: 10px; font-weight: 600; transition: border-color .2s, background .2s, color .2s, transform .2s; }
+.nw-footer-social-links a:hover, .nw-footer-social-links a:focus-visible { border-color: #a775db; background: #322041; color: #fff; transform: translateY(-2px); }
+.nw-footer-social-links a:focus-visible { outline: 2px solid #d5a8ff; outline-offset: 2px; }
+.nw-footer-social-links svg { color: #c596ed; }
+@media (min-width: 480px) and (max-width: 767px) { .nw-footer-socials { margin-top: 0; } }
+@media (max-width: 479px) { .nw-footer-socials { margin-top: 23px; } }

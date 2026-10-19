@@ -1,5 +1,6 @@
 import React from 'react';
 import { Link, usePage } from '@inertiajs/react';
+import { Send } from 'lucide-react';
 import { Brand } from './Sidebar';
 
 export default function Footer() {
@@ -10,7 +11,13 @@ export default function Footer() {
     const companyAddress = company?.address || 'Costa Rica, San José, Montes de Oca, San Pedro, Los Yoses, Avenidas Ocho y Diez, Calle Treinta y Nueve, LY Center';
     const contactEmail = company?.email || 'info@neon-win.co.uk';
     return <footer className="nw-footer"><div className="nw-footer-inner">
-        <div className="nw-footer-top"><div className="nw-footer-brand"><Link href="/" aria-label="Neonwin home"><Brand /></Link><p>Your world of play. Discover new favorites, share good moments and enjoy a little neon magic.</p></div>
+        <div className="nw-footer-top"><div className="nw-footer-brand">
+            <div className="nw-footer-intro"><Link href="/" aria-label="Neonwin home"><Brand /></Link><p>Your world of play. Discover new favorites, share good moments and enjoy a little neon magic.</p></div>
+            <div className="nw-footer-socials"><span>FOLLOW THE NEON</span><div className="nw-footer-social-links">
+                <a href="https://t.me/neonwin_world" target="_blank" rel="noopener noreferrer" aria-label="Neonwin on Telegram (opens in a new tab)"><Send size={16} aria-hidden="true" /><span>Telegram</span></a>
+                <a href="https://www.instagram.com/neonwin.official/" target="_blank" rel="noopener noreferrer" aria-label="Neonwin on Instagram (opens in a new tab)"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true"><rect x="2" y="2" width="20" height="20" rx="5" /><circle cx="12" cy="12" r="4" /><circle cx="18" cy="6" r="1" fill="currentColor" stroke="none" /></svg><span>Instagram</span></a>
+            </div></div>
+        </div>
             <div className="nw-footer-links"><h3>Explore</h3><Link href="/?category=slots">Slots</Link><Link href="/?category=live">Live casino</Link><Link href="/?category=crash">Crash & fast games</Link><Link href="/vip">VIP club</Link></div>
             <div className="nw-footer-links"><h3>Here to help</h3><Link href="/about">About Neonwin</Link><Link href="/faq">Help center</Link><Link href="/contact">Contact support</Link><Link href="/responsible-gaming">Responsible play</Link></div>
             <div className="nw-footer-links"><h3>The essentials</h3><Link href="/terms">Terms & conditions</Link><Link href="/privacy">Privacy policy</Link><Link href="/promotions">Promotions & bonuses</Link></div>
