@@ -2,6 +2,7 @@
 
 use App\Http\Controllers\FlexrixCallbackController;
 use App\Http\Controllers\GgrGoldApiController;
+use App\Http\Controllers\SterlingPayWebhookController;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
 
@@ -16,3 +17,5 @@ Route::post('/gold_api', [GgrGoldApiController::class, 'handleCallback']);
 
 Route::post('/flexrix/casino/callback', [FlexrixCallbackController::class, 'casino'])->name('flexrix.casino.callback');
 Route::post('/flexrix/sportsbook/{action}', [FlexrixCallbackController::class, 'sportsbook'])->whereIn('action', ['balance', 'debit', 'credit', 'rollback'])->name('flexrix.sportsbook.callback');
+
+Route::post('/payments/sterlingpay/webhook', SterlingPayWebhookController::class)->name('sterlingpay.webhook');

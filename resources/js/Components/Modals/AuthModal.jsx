@@ -25,7 +25,7 @@ import {
 import { WORLD_COUNTRIES } from '../../constants/countries';
 
 export default function AuthModal({ isOpen, onClose, initialMode = 'login' }) {
-    const { welcomeOffer } = usePage().props;
+    const { welcomeOffer, payments } = usePage().props;
     const [mode, setMode] = useState(initialMode); // 'login' | 'register'
     const [showPassword, setShowPassword] = useState(false);
 
@@ -114,7 +114,7 @@ export default function AuthModal({ isOpen, onClose, initialMode = 'login' }) {
                             <li><Gift size={20} /><div><strong>A code. A little extra.</strong><span>Register with an eligible promo code for a deposit offer or FreeSpins.</span></div></li>
                             <li><ShieldCheck size={20} /><div><strong>Your documents stay private</strong><span>Identity uploads are available to you and authorized reviewers.</span></div></li>
                         </ul>
-                        <p className="nw-auth-notice">Payments and withdrawals are currently unavailable. Deposit bonuses apply after verified payment.</p>
+                        <p className="nw-auth-notice">{payments?.enabled ? 'EUR deposits are processed on Sterling Pay’s secure payment page. Withdrawals are currently unavailable.' : 'Payments and withdrawals are currently unavailable. Deposit bonuses apply after verified payment.'}</p>
                     </div>
                     <span className="nw-auth-story-footer">PLAY RESPONSIBLY · ADULTS 18+</span>
                 </aside>

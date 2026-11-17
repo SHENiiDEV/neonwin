@@ -4,6 +4,7 @@ namespace App\Http\Middleware;
 
 use App\Models\Promotion;
 use App\Models\VipAccount;
+use App\Services\SterlingPayService;
 use Illuminate\Http\Request;
 use Inertia\Middleware;
 
@@ -81,6 +82,7 @@ class HandleInertiaRequests extends Middleware
                 'success' => fn () => $request->session()->get('success'),
             ],
             'app_name' => config('app.name', 'NEONWIN'),
+            'payments' => ['enabled' => app(SterlingPayService::class)->available(), 'testMode' => (bool) config('sterlingpay.test_mode')],
             'welcomeOffer' => $welcomeOffer?->available() ? $welcomeOffer->only(['percent_bps', 'min_deposit_cents', 'max_bonus_cents', 'terms']) : null,
         ]);
     }

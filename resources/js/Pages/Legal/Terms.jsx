@@ -11,7 +11,7 @@ const sections = [
         'Game rules, permitted stakes and availability may differ by provider, game and location. Check the rules shown with a game before playing. If a bet, win, refund or rollback appears incorrect, stop playing and send support the game name, approximate time and transaction reference if available. We will review the wallet and provider records and correct a verified processing error.',
     ]],
     ['Deposits and withdrawals', [
-        'Payment processing is currently unavailable. Do not send money outside the cashier or in response to an unsolicited message. Once a provider is enabled, the cashier must show the amount, currency and applicable conditions before you authorize payment. A payment is credited only after its successful status is verified.',
+        'EUR deposits are available only when the cashier shows an active payment method. The cashier shows the amount and currency before you continue to the provider-hosted payment page. Do not send money outside the cashier or in response to an unsolicited message. A payment is credited only after its successful status is verified with the provider.',
         'Withdrawals are not currently available. Both identity documents must be approved before the withdrawal entry is shown; approval does not guarantee or activate a payout. Any future withdrawal process, limits, fees and verification requirements must be presented before requests can be made. We do not currently promise payout times or payment methods.',
     ]],
     ['Promotions, FreeSpins and VIP rewards', [

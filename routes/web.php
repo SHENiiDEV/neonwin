@@ -64,6 +64,8 @@ Route::post('/logout', [AuthController::class, 'logout'])->name('logout');
 
 // Wallet & Chat
 Route::post('/deposit', [DepositController::class, 'deposit'])->middleware(['auth', 'throttle:10,1'])->name('deposit');
+Route::get('/payment/return', [DepositController::class, 'paymentReturn'])->middleware('auth')->name('payment.return');
+Route::get('/api/payments/orders/{reference}/status', [DepositController::class, 'status'])->middleware(['auth', 'throttle:30,1'])->name('payment.status');
 Route::post('/chat/send', [ChatController::class, 'sendMessage'])->name('chat.send');
 
 // Gamification: Cyber Crates

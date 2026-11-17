@@ -10,9 +10,9 @@ class Deposit extends Model
 {
     use HasFactory;
 
-    protected $fillable = ['reference', 'user_id', 'package', 'amount_cents', 'currency', 'status', 'payment_provider', 'payment_event_id', 'confirmed_at'];
+    protected $fillable = ['reference', 'user_id', 'package', 'amount_cents', 'currency', 'status', 'payment_provider', 'payment_event_id', 'payment_invoice_id', 'payment_test_mode', 'confirmed_at'];
 
-    protected $casts = ['amount_cents' => 'integer', 'confirmed_at' => 'datetime'];
+    protected $casts = ['amount_cents' => 'integer', 'payment_test_mode' => 'boolean', 'confirmed_at' => 'datetime'];
 
     public function user(): BelongsTo
     {
